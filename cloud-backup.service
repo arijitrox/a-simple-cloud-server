@@ -1,0 +1,10 @@
+[Unit]
+Description=Restic backup of cloud infrastructure data
+After=network-online.target docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/home/arijit/cloud-infra/minio/scripts/backup.sh
+User=root
+StandardOutput=journal
+StandardError=journal
