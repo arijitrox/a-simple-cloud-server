@@ -24,6 +24,15 @@ docker image prune -f
 
 # 2. Update AI Models (Ollama)
 echo "🧠 4/4: Updating all local AI models..."
+
+# --- CORE MODELS (Auto-Install) ---
+CORE_MODELS=("deepseek-r1:32b" "gemma2:27b" "gpt-oss:20b" "gpt-oss:120b")
+
+for CORE_MODEL in "${CORE_MODELS[@]}"; do
+    echo "⬇️ Ensuring core model is present: $CORE_MODEL"
+    docker exec ollama ollama pull $CORE_MODEL
+done
+
 MODELS=$(docker exec ollama ollama list | tail -n +2 | awk '{print $1}')
 
 if [ -z "$MODELS" ]; then
