@@ -1,0 +1,25 @@
+services:
+  netdata:
+    image: netdata/netdata:latest
+    container_name: netdata
+    hostname: arijit-server
+    pid: host
+    network_mode: host
+    restart: unless-stopped
+    cap_add:
+      - SYS_PTRACE
+      - SYS_ADMIN
+    security_opt:
+      - apparmor:unconfined
+    volumes:
+      - /etc/passwd:/host/etc/passwd:ro
+      - /etc/group:/host/etc/group:ro
+      - /etc/localtime:/etc/localtime:ro
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /etc/os-release:/host/etc/os-release:ro
+      - /var/log:/host/var/log:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - /run/dbus:/run/dbus:ro
+      - /mnt/cloud_storage/netdata_data:/var/lib/netdata
+      - /mnt/cloud_storage/netdata_config:/etc/netdata

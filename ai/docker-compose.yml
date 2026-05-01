@@ -1,0 +1,87 @@
+services:
+  ollama:
+    image: ollama/ollama:rocm
+    container_name: ollama
+    devices:
+      - /dev/kfd:/dev/kfd
+      - /dev/dri:/dev/dri
+    group_add:
+      - video
+    ipc: host
+    security_opt:
+      - seccomp:unconfined
+    environment:
+      - HSA_OVERRIDE_GFX_VERSION=10.3.0
+    volumes:
+      - /mnt/cloud_storage/ollama_models:/root/.ollama
+    ports:
+      - "11434:11434"
+    networks:
+      - cloud-net
+    restart: unless-stopped
+
+  pipelines:
+    image: ghcr.io/open-webui/pipelines:main
+    container_name: pipelines
+    environment:
+      - PIPELINES_API_KEY=${PIPELINES_API_KEY}
+    volumes:
+      - /mnt/cloud_storage/pipelines_data:/app/pipelines
+    ports:
+      - "9099:9099"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    networks:
+      - cloud-net
+    restart: unless-stopped
+
+  redis:
+    image: redis:alpine
+    container_name: redis
+    networks:
+      - cloud-net
+    restart: unless-stopped
+
+  searxng:
+    image: searxng/searxng:latest
+    container_name: searxng
+    ports:
+      - "8080:8080"
+    volumes:
+      - /mnt/cloud_storage/searxng:/etc/searxng
+    environment:
+      - SEARXNG_BASE_URL=http://searxng:8080/
+    networks:
+      - cloud-net
+    restart: unless-stopped
+
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: open-webui
+    environment:
+      - OLLAMA_BASE_URL=http://ollama:11434
+      - ENABLE_RAG_WEB_SEARCH=True
+      - RAG_WEB_SEARCH_ENGINE=searxng
+      - SEARXNG_QUERY_URL=http://searxng:8080/search?q=<query>
+      - RAG_WEB_SEARCH_RESULT_COUNT=10
+      - RAG_WEB_SEARCH_CONCURRENT_REQUESTS=20
+      - PIPELINES_URL=http://pipelines:9099
+      - PIPELINES_API_KEY=${PIPELINES_API_KEY}
+      - OPENAI_API_BASE_URL=http://pipelines:9099
+      - OPENAI_API_KEY=${PIPELINES_API_KEY}
+      - DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+    volumes:
+      - /mnt/cloud_storage/webui_data:/app/backend/data
+    ports:
+      - "3000:8080"
+    depends_on:
+      - ollama
+      - searxng
+      - pipelines
+    networks:
+      - cloud-net
+    restart: unless-stopped
+
+networks:
+  cloud-net:
+    external: true

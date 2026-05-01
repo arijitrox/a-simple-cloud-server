@@ -1,0 +1,30 @@
+services:
+  jellyfin:
+    image: lscr.io/linuxserver/jellyfin:latest
+    container_name: jellyfin
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+    volumes:
+      - /mnt/cloud_storage/jellyfin_config:/config
+      - /mnt/cloud_storage/media:/data/ssd_media
+      - /mnt/data_1:/data/hdd_1
+      - /mnt/data_2:/data/hdd_2
+      - /mnt/data_3:/data/hdd_3
+      - /mnt/data_4:/data/hdd_4
+      - /mnt/data_5:/data/hdd_5
+    ports:
+      - "8096:8096"
+    devices:
+      - /dev/dri:/dev/dri
+    group_add:
+      - "44"
+      - "110"
+    networks:
+      - cloud-net
+    restart: unless-stopped
+
+networks:
+  cloud-net:
+    external: true

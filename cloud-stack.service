@@ -1,0 +1,16 @@
+[Unit]
+Description=Cloud Infrastructure Stack
+After=network-online.target mnt-cloud_storage.mount docker.service
+Requires=docker.service
+RequiresMountsFor=/mnt/cloud_storage
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=/home/arijit/cloud-infra/minio
+ExecStart=/usr/bin/make up
+ExecStop=/usr/bin/make down
+User=arijit
+
+[Install]
+WantedBy=multi-user.target

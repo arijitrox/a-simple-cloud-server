@@ -1,0 +1,25 @@
+services:
+  jupyter:
+    image: rocm/pytorch:latest
+    container_name: jupyter-lab
+    devices:
+      - /dev/kfd:/dev/kfd
+      - /dev/dri:/dev/dri
+    group_add:
+      - video
+    ipc: host
+    security_opt:
+      - seccomp:unconfined
+    volumes:
+      - /mnt/cloud_storage/jupyter_workspace:/workspace
+    working_dir: /workspace
+    command: bash -c "pip install jupyterlab && jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root --NotebookApp.token='${JUPYTER_TOKEN}'"
+    ports:
+      - "8888:8888"
+    networks:
+      - cloud-net
+    restart: unless-stopped
+
+networks:
+  cloud-net:
+    external: true
