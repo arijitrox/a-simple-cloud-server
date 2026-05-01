@@ -1,38 +1,40 @@
 REPO_ROOT := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
-COMPOSE   := docker compose --project-directory $(REPO_ROOT)
+ENV_FILE  := $(REPO_ROOT).env
 
-STACKS := infra media ai devops compute monitoring
+define compose
+docker compose --project-name $(1) --env-file $(ENV_FILE) -f $(REPO_ROOT)$(1)/docker-compose.yml
+endef
 
-.PHONY: up down restart update network logs ps
+.PHONY: up down restart update network ps
 
 network:
 	docker network inspect cloud-net >/dev/null 2>&1 || docker network create cloud-net
 
 up: network
-	$(COMPOSE) -f infra/docker-compose.yml      up -d --remove-orphans
-	$(COMPOSE) -f media/docker-compose.yml      up -d --remove-orphans
-	$(COMPOSE) -f ai/docker-compose.yml         up -d --remove-orphans
-	$(COMPOSE) -f devops/docker-compose.yml     up -d --remove-orphans
-	$(COMPOSE) -f compute/docker-compose.yml    up -d --remove-orphans
-	$(COMPOSE) -f monitoring/docker-compose.yml up -d --remove-orphans
+	$(call compose,infra)      up -d
+	$(call compose,media)      up -d
+	$(call compose,ai)         up -d
+	$(call compose,devops)     up -d
+	$(call compose,compute)    up -d
+	$(call compose,monitoring) up -d
 
 down:
-	$(COMPOSE) -f monitoring/docker-compose.yml down
-	$(COMPOSE) -f compute/docker-compose.yml    down
-	$(COMPOSE) -f devops/docker-compose.yml     down
-	$(COMPOSE) -f ai/docker-compose.yml         down
-	$(COMPOSE) -f media/docker-compose.yml      down
-	$(COMPOSE) -f infra/docker-compose.yml      down
+	$(call compose,monitoring) down
+	$(call compose,compute)    down
+	$(call compose,devops)     down
+	$(call compose,ai)         down
+	$(call compose,media)      down
+	$(call compose,infra)      down
 
 restart: down up
 
 update:
-	$(COMPOSE) -f infra/docker-compose.yml      pull && $(COMPOSE) -f infra/docker-compose.yml      up -d
-	$(COMPOSE) -f media/docker-compose.yml      pull && $(COMPOSE) -f media/docker-compose.yml      up -d
-	$(COMPOSE) -f ai/docker-compose.yml         pull && $(COMPOSE) -f ai/docker-compose.yml         up -d
-	$(COMPOSE) -f devops/docker-compose.yml     pull && $(COMPOSE) -f devops/docker-compose.yml     up -d
-	$(COMPOSE) -f compute/docker-compose.yml    pull && $(COMPOSE) -f compute/docker-compose.yml    up -d
-	$(COMPOSE) -f monitoring/docker-compose.yml pull && $(COMPOSE) -f monitoring/docker-compose.yml up -d
+	$(call compose,infra)      pull && $(call compose,infra)      up -d
+	$(call compose,media)      pull && $(call compose,media)      up -d
+	$(call compose,ai)         pull && $(call compose,ai)         up -d
+	$(call compose,devops)     pull && $(call compose,devops)     up -d
+	$(call compose,compute)    pull && $(call compose,compute)    up -d
+	$(call compose,monitoring) pull && $(call compose,monitoring) up -d
 
 ps:
 	docker ps --format "table {{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}"

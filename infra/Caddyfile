@@ -1,0 +1,65 @@
+{
+    email admin@arijitroy.com
+}
+
+# AI / Open-WebUI
+ai.arijitroy.com {
+    tls internal
+    reverse_proxy open-webui:8080
+}
+
+# Gitea
+git.arijitroy.com {
+    tls internal
+    reverse_proxy gitea:3000
+}
+
+# Jellyfin
+media.arijitroy.com {
+    tls internal
+    reverse_proxy jellyfin:8096
+}
+
+# MinIO console
+storage.arijitroy.com {
+    tls internal
+    reverse_proxy minio:9001
+}
+
+# Portainer
+portainer.arijitroy.com {
+    tls internal
+    reverse_proxy portainer:9000
+}
+
+# Jupyter
+jupyter.arijitroy.com {
+    tls internal
+    reverse_proxy jupyter-lab:8888
+}
+
+# SearXNG
+search.arijitroy.com {
+    tls internal
+    reverse_proxy searxng:8080
+}
+
+# Pipelines
+pipes.arijitroy.com {
+    tls internal
+    reverse_proxy pipelines:9099
+}
+
+# Netdata (host network — reached via host gateway)
+monitor.arijitroy.com {
+    tls internal
+    reverse_proxy host.docker.internal:19999
+}
+
+# Ollama API (Tailscale-only via IP restriction)
+ollama.arijitroy.com {
+    tls internal
+    @blocked not remote_ip 100.0.0.0/8 192.168.0.0/16 10.0.0.0/8 172.16.0.0/12
+    abort @blocked
+    reverse_proxy ollama:11434
+}
