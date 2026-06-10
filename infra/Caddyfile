@@ -3,7 +3,7 @@
 }
 
 # AI / Open-WebUI
-ai.arijitroy.com {
+chat.arijitroy.com {
     tls internal
     reverse_proxy open-webui:8080
 }
@@ -27,7 +27,7 @@ storage.arijitroy.com {
 }
 
 # Portainer
-portainer.arijitroy.com {
+port.arijitroy.com {
     tls internal
     reverse_proxy portainer:9000
 }
@@ -54,6 +54,12 @@ pipes.arijitroy.com {
 monitor.arijitroy.com {
     tls internal
     reverse_proxy host.docker.internal:19999
+}
+
+# Homepage / Dashboard
+www.arijitroy.com {
+    tls internal
+    reverse_proxy homepage:80
 }
 
 # Ollama API (Tailscale-only via IP restriction)

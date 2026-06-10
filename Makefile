@@ -12,6 +12,7 @@ network:
 
 up: network
 	$(call compose,infra)      up -d
+	$(call compose,homepage)   up -d
 	$(call compose,media)      up -d
 	$(call compose,ai)         up -d
 	$(call compose,devops)     up -d
@@ -24,12 +25,14 @@ down:
 	$(call compose,devops)     down
 	$(call compose,ai)         down
 	$(call compose,media)      down
+	$(call compose,homepage)   down
 	$(call compose,infra)      down
 
 restart: down up
 
 update:
 	$(call compose,infra)      pull && $(call compose,infra)      up -d
+	$(call compose,homepage)   pull && $(call compose,homepage)   up -d
 	$(call compose,media)      pull && $(call compose,media)      up -d
 	$(call compose,ai)         pull && $(call compose,ai)         up -d
 	$(call compose,devops)     pull && $(call compose,devops)     up -d

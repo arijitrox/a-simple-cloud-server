@@ -8,10 +8,10 @@ from watchdog.events import FileSystemEventHandler
 # CHANGE THIS to the actual folder on your Gaming PC where logs appear
 WATCH_DIRECTORY = r"C:\Users\arijit\Desktop\AMD_Logs" 
 
-MINIO_URL = 'http://192.168.1.50:9000' # Replace with your SERVER IP
-ACCESS_KEY = 'admin'
-SECRET_KEY = 'REDACTED'
-BUCKET_NAME = 'lab-logs'
+MINIO_URL = os.environ.get('MINIO_URL', 'http://localhost:9000')
+ACCESS_KEY = os.environ.get('MINIO_ROOT_USER', '')
+SECRET_KEY = os.environ.get('MINIO_ROOT_PASSWORD', '')
+BUCKET_NAME = os.environ.get('MINIO_BUCKET', 'lab-logs')
 
 class LogHandler(FileSystemEventHandler):
     def on_created(self, event):

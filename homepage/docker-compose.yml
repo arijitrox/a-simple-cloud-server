@@ -1,0 +1,13 @@
+services:
+  homepage:
+    image: httpd:alpine
+    container_name: homepage
+    volumes:
+      - ./html:/usr/local/apache2/htdocs:ro
+    networks:
+      - cloud-net
+    restart: unless-stopped
+
+networks:
+  cloud-net:
+    external: true

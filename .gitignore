@@ -1,2 +1,5 @@
 .env
 .env.*
+!.env.example
+.claude/
+SERVER_LOG.md
