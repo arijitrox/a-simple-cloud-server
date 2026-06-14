@@ -61,7 +61,7 @@ log "Commits touching the target path(s) AFTER (should be empty):"
 for p in "${PATHS_TO_PURGE[@]}"; do git log --oneline --all -- "$p" || true; done
 echo
 log "Verify a known leaked string is gone, e.g.:"
-log "  git -C $WORKDIR grep -i REDACTED \$(git -C $WORKDIR rev-list --all) || echo CLEAN"
+log "  git -C $WORKDIR grep -i '<a-leaked-string>' \$(git -C $WORKDIR rev-list --all) || echo CLEAN"
 
 if [[ "$DO_PUSH" -eq 0 ]]; then
   echo

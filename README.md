@@ -1,4 +1,4 @@
-# AI God Cloud
+# AI Homelab Cloud
 
 Self-hosted homelab stack running on an AMD EPYC 7742 server with 3x RX 6700 XT GPUs (ROCm). Docker-based, split into focused stacks with a shared Caddy reverse proxy and Cloudflare Tunnel for public access.
 
