@@ -82,6 +82,28 @@ services:
       - cloud-net
     restart: unless-stopped
 
+  openclaw-gateway:
+    image: ghcr.io/openclaw/openclaw:latest
+    container_name: openclaw-gateway
+    command: node dist/index.js gateway --allow-unconfigured
+    environment:
+      - OPENCLAW_GATEWAY_TOKEN=${OPENCLAW_GATEWAY_TOKEN}
+      - OPENCLAW_CONFIG_DIR=/home/node/.openclaw
+      - OPENCLAW_WORKSPACE_DIR=/home/node/.openclaw/workspace
+      - OPENCLAW_AUTH_PROFILE_SECRET_DIR=/home/node/.config/openclaw
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - /mnt/cloud_storage/openclaw_config:/home/node/.openclaw
+      - /mnt/cloud_storage/openclaw_auth:/home/node/.config/openclaw
+    ports:
+      - "18789:18789"
+    depends_on:
+      - ollama
+    networks:
+      - cloud-net
+    restart: unless-stopped
+
 networks:
   cloud-net:
     external: true

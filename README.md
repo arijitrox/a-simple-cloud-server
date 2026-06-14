@@ -15,7 +15,7 @@ Self-hosted homelab stack running on an AMD EPYC 7742 server with 3x RX 6700 XT 
 | Directory | Services |
 |-----------|----------|
 | `infra/` | Cloudflared tunnel, Caddy reverse proxy, MinIO, Portainer |
-| `ai/` | Ollama, Open-WebUI, Pipelines, SearXNG, Redis |
+| `ai/` | Ollama, Open-WebUI, Pipelines, SearXNG, Redis, OpenClaw |
 | `devops/` | Gitea, Gitea runner, Postgres |
 | `compute/` | Jupyter Lab (ROCm) |
 | `media/` | Jellyfin |
@@ -31,10 +31,11 @@ $EDITOR .env
 
 # 2. Bring up all stacks
 make up
-
-# 3. Or bring up a single stack
-make up STACK=ai
 ```
+
+> The Makefile drives every stack at once (there is no per-stack target). To act on a
+> single stack, call docker compose directly, e.g.
+> `docker compose --project-name ai --env-file .env -f ai/docker-compose.yml up -d`.
 
 ## Makefile targets
 
@@ -57,4 +58,22 @@ All stacks share an external Docker bridge network `cloud-net`. Caddy issues int
 ## Utilities
 
 - `auto_ingestor.py` — watches a directory and uploads new files to a MinIO bucket. Configure via `MINIO_URL`, `MINIO_ROOT_USER`, `MINIO_ROOT_PASSWORD`, and `MINIO_BUCKET` env vars.
-- `calculate_pi.py` / `gpu_pi.py` / `pytorch_test.py` — GPU sanity checks.
+- `calculate_pi.py` / `gpu_pi.py` / `pytorch_test.py` — CPU/GPU sanity checks.
+- `share_drives.sh` — one-shot Samba setup that exports `/mnt/cloud_storage` and all HDD bays as SMB shares to the LAN. Review before running (see Security notes).
+
+### Deprecated / cleanup candidates
+
+- `update_stack.sh` — **broken.** It runs `docker compose pull/up` from the repo root, but the monolith compose file was split into per-stack files, so there is no root `docker-compose.yml`. Use `make update` instead.
+- `calculatte_pi_gpu` — junk file: a misnamed, untracked-history copy of `calculate_pi.py` (CPU Monte-Carlo, not GPU). Safe to delete.
+
+## Service exposure & security
+
+External access is via Cloudflare Tunnel; only the hostnames you register in the tunnel are reachable. Be deliberate about which of these you expose:
+
+- **Portainer** (`port.*`) holds the Docker socket — equivalent to root on the host. Keep it Tailscale-only or behind Cloudflare Access, never an open public hostname.
+- **MinIO console** (`storage.*`) ships with default user `admin`; set a strong `MINIO_ROOT_PASSWORD` and consider a non-default user.
+- **Jupyter** (`jupyter.*`) runs `--allow-root` with the token passed on the command line (visible in `docker inspect`). Gate it behind Access.
+- **Ollama** (`ollama.*`) is already IP-restricted to LAN/Tailscale in the Caddyfile — keep it that way.
+- Docker publishes container ports directly to the host and **bypasses ufw**, so `11434`, `9000/9001`, `8888`, `3000`, etc. are open on all interfaces regardless of the firewall. Ensure the host is not directly internet-facing, or restrict with explicit iptables `DOCKER-USER` rules.
+
+See `SERVER_LOG.md` for the live exposure review and the outstanding credential-rotation task.

@@ -62,6 +62,12 @@ www.arijitroy.com {
     reverse_proxy homepage:80
 }
 
+# OpenClaw AI gateway
+claw.arijitroy.com {
+    tls internal
+    reverse_proxy openclaw-gateway:18789
+}
+
 # Ollama API (Tailscale-only via IP restriction)
 ollama.arijitroy.com {
     tls internal
