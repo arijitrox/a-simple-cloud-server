@@ -16,7 +16,7 @@ Self-hosted homelab stack running on an AMD EPYC 7742 server with 3x RX 6700 XT 
 |-----------|----------|
 | `infra/` | Cloudflared tunnel, Caddy reverse proxy, MinIO, Portainer |
 | `ai/` | Ollama, Open-WebUI, Pipelines, SearXNG, Redis, OpenClaw |
-| `devops/` | Gitea, Gitea runner, Postgres |
+| `devops/` | Gitea, Postgres |
 | `compute/` | Jupyter Lab (ROCm) |
 | `media/` | Jellyfin |
 | `monitoring/` | Netdata |

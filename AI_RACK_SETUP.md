@@ -173,7 +173,6 @@ Fill in every value:
 | `POSTGRES_USER` / `POSTGRES_PASSWORD` | Choose credentials |
 | `POSTGRES_DB` | Set to `warehouse` or any name |
 | `PIPELINES_API_KEY` | `openssl rand -hex 32` |
-| `GITEA_RUNNER_REGISTRATION_TOKEN` | Set after Gitea first-run (see step 10) |
 | `JUPYTER_TOKEN` | Choose a passphrase |
 | `RESTIC_PASSWORD` | Choose a passphrase — **do not lose this** |
 | `OPENCLAW_GATEWAY_TOKEN` | `openssl rand -hex 32` |
@@ -253,8 +252,11 @@ docker exec -it ollama ollama pull qwen2.5:32b
 1. Navigate to `https://git.yourdomain.com`
 2. Complete the install wizard (DB: Postgres, host: `postgres:5432`)
 3. Create admin account
-4. Go to Admin → Runners → Create runner → copy token → update `GITEA_RUNNER_REGISTRATION_TOKEN` in `.env`
-5. `make restart` to apply the new token
+
+> This stack runs Gitea purely as a repo host — no Actions runner. If you want
+> CI/CD, add a `gitea/act_runner` service back to `devops/docker-compose.yml`
+> (note: it mounts the Docker socket = root-equivalent on the host, so only do
+> this if you trust everyone who can push workflows).
 
 ### MinIO
 
