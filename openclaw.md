@@ -95,6 +95,72 @@ Available working models (as of 2026-06-14):
 - `ollama/gpt-oss:120b` — large, slow
 - `claude-cli/claude-sonnet-4-6` — uses local Claude Code CLI session
 
+## Reasoning models & the "LLM idle timeout (120s)" error
+
+### Symptom
+
+Every chat message fails. The Control UI shows what looks like a save/write or
+"can't reach the agent" error. The gateway logs show, on each run:
+
+```
+[agent/embedded] rawError=LLM idle timeout (120s): no response from model
+[llm-idle-timeout] ollama/qwen3.5:27b produced no reply before the idle watchdog; retrying same model
+```
+
+This is **not** a file/permissions/disk problem — config and state write fine.
+
+### Root cause
+
+`qwen3.5:27b` is a **reasoning ("thinking") model**. OpenClaw resolves the
+thinking level per `docs/tools/thinking.md`; when **no `thinkingDefault` is set**,
+reasoning-capable models fall back to `medium`. The model then spends its whole
+budget in the hidden `thinking` channel and emits **no visible assistant token**
+before OpenClaw's 120s idle watchdog fires → the run is killed and surfaced as an
+error.
+
+Proof (same model, direct Ollama `/api/generate`):
+- `think: true`  → ~98s and an **empty** `response` (all output went to `thinking`)
+- `think: false` → **~0.8s** and a correct `response`
+
+### Fix (applied)
+
+Set the global thinking default to off so non-interactive/chat runs don't think
+by default:
+
+```bash
+docker exec openclaw-gateway openclaw config set agents.defaults.thinkingDefault off
+docker restart openclaw-gateway   # required: "Restart the gateway to apply."
+```
+
+This writes `agents.defaults.thinkingDefault: "off"` to `openclaw.json` (a
+`.bak` is created automatically). Verify end-to-end without touching the web UI:
+
+```bash
+docker exec openclaw-gateway openclaw agent --agent main --session-key smoketest \
+  --message "Reply with exactly: pong" --timeout 150
+```
+
+### Thinking controls (when you *do* want reasoning)
+
+Per-message / per-session directives (typed into any chat):
+- `/think off | low | medium | high | max` — `max` maps to Ollama native `think: "high"`
+- `/think` with no arg shows the current level; `/think default` clears a session override
+
+One-shot CLI override: `openclaw agent ... --thinking off`.
+Resolution order (highest first): inline directive → session override →
+`agents.list[].thinkingDefault` → `agents.defaults.thinkingDefault` → provider fallback.
+
+### Related gotchas
+
+- **Bloated sessions are slow to first token.** A heavy session (e.g. tens of
+  thousands of tokens from prior failed retries) can spend 60s+ in
+  `session-resource-loader` *before* the model runs, which alone can approach the
+  120s watchdog. Start a fresh session / reset the affected one if first replies
+  are borderline. Check session weight with `openclaw sessions list` (Tokens column).
+- **First-reply latency (~30–80s) on `qwen3.5:27b`** comes from the 27B being
+  split across both RX 6700s (10 GB each) over PCIe. It works but is slow; a model
+  that fits a single GPU is much faster to first token.
+
 ## Device Pairing
 
 ### Problem: devices re-pair after every restart

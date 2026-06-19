@@ -3,3 +3,8 @@
 !.env.example
 .claude/
 SERVER_LOG.md
+
+# Local-model generated docs may contain cleartext credentials — never commit
+docs/
+docgen.log
+FAILURES.log
