@@ -5,7 +5,9 @@ define compose
 docker compose --project-name $(1) --env-file $(ENV_FILE) -f $(REPO_ROOT)$(1)/docker-compose.yml
 endef
 
-.PHONY: up down restart update network ps
+STACKS := infra homepage media devops ai compute monitoring
+
+.PHONY: up down restart update network ps logs check reload-caddy
 
 network:
 	docker network inspect cloud-net >/dev/null 2>&1 || docker network create cloud-net
@@ -43,5 +45,21 @@ update:
 ps:
 	docker ps --format "table {{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}"
 
+# Follow logs for one stack: make logs s=ai
 logs:
-	docker compose logs -f --tail=50
+	@test -n "$(s)" || { echo "usage: make logs s=<stack>  (stacks: $(STACKS))"; exit 1; }
+	$(call compose,$(s)) logs -f --tail=50
+
+# Validate all compose files and the Caddyfile without touching running services
+check:
+	@for s in $(STACKS); do \
+	  docker compose --project-name $$s --env-file $(ENV_FILE) \
+	    -f $(REPO_ROOT)$$s/docker-compose.yml config -q \
+	    && echo "$$s: OK" || exit 1; \
+	done
+	@docker exec caddy caddy validate --config /etc/caddy/Caddyfile >/dev/null 2>&1 \
+	  && echo "Caddyfile: OK" || { echo "Caddyfile: INVALID"; exit 1; }
+
+# Apply Caddyfile edits to the running container (it's mounted read-only)
+reload-caddy:
+	docker exec -w /etc/caddy caddy caddy reload --config /etc/caddy/Caddyfile

@@ -34,7 +34,15 @@ log "Dumping Postgres..."
 docker exec postgres pg_dumpall -U "$POSTGRES_USER" | gzip > "$STAGING/postgres_full.sql.gz"
 log "Postgres dump: $(du -sh "$STAGING/postgres_full.sql.gz" | cut -f1)"
 
-# 2. Backup to local repo
+# 2. Gitea consistent dump — the live SQLite copy inside gitea_data can be torn
+# mid-write; this captures DB + config safely. Repos are skipped (bare git dirs
+# snapshot fine and are already in the restic set below).
+log "Dumping Gitea..."
+docker exec -u 1000 gitea gitea dump --skip-repository --skip-log \
+  -c /data/gitea/conf/app.ini -f - > "$STAGING/gitea-dump.zip"
+log "Gitea dump: $(du -sh "$STAGING/gitea-dump.zip" | cut -f1)"
+
+# 3. Backup to local repo
 log "Backing up to local repo..."
 restic -r "$LOCAL_REPO" backup \
   /mnt/cloud_storage/gitea_data \
@@ -51,26 +59,26 @@ restic -r "$LOCAL_REPO" backup \
   --tag daily \
   --verbose=0
 
-# 3. Prune local (keep 7 daily, 4 weekly, 6 monthly)
+# 4. Prune local (keep 7 daily, 4 weekly, 6 monthly)
 log "Pruning local repo..."
 restic -r "$LOCAL_REPO" forget --prune \
   --keep-daily 7 --keep-weekly 4 --keep-monthly 6 \
   --quiet
 
-# 4. Copy latest snapshot to Google Drive
+# 5. Copy latest snapshot to Google Drive
 log "Copying to Google Drive..."
 restic -r "$LOCAL_REPO" copy \
   --repo2 "$REMOTE_REPO" \
   --password2 "$RESTIC_PASSWORD" \
   --quiet
 
-# 5. Prune remote (keep 4 weekly, 6 monthly — less granular for offsite)
+# 6. Prune remote (keep 4 weekly, 6 monthly — less granular for offsite)
 log "Pruning remote repo..."
 restic -r "$REMOTE_REPO" forget --prune \
   --keep-weekly 4 --keep-monthly 6 \
   --quiet
 
-# 6. Weekly integrity check (Sundays) — reads 5% of pack data
+# 7. Weekly integrity check (Sundays) — reads 5% of pack data
 if [ "$(date +%u)" -eq 7 ]; then
   log "Weekly integrity check of local repo..."
   restic -r "$LOCAL_REPO" check --read-data-subset=5%
