@@ -64,6 +64,26 @@ services:
       - cloud-net
     restart: unless-stopped
 
+  # Speech-to-text (transcription): OpenAI-compatible faster-whisper server.
+  # Exposes /v1/audio/transcriptions for Open WebUI and any app on cloud-net.
+  # CPU on the EPYC 7742 — CTranslate2 has no ROCm path for the RX 6700s.
+  speaches:
+    image: ghcr.io/speaches-ai/speaches:latest-cpu
+    container_name: speaches
+    environment:
+      - WHISPER__MODEL=deepdml/faster-whisper-large-v3-turbo-ct2
+      - WHISPER__COMPUTE_TYPE=int8
+      - WHISPER__CPU_THREADS=4
+      - WHISPER__NUM_WORKERS=8
+      - HF_HOME=/home/ubuntu/.cache/huggingface
+    volumes:
+      - /mnt/cloud_storage/speaches_cache:/home/ubuntu/.cache/huggingface
+    ports:
+      - "8000:8000"
+    networks:
+      - cloud-net
+    restart: unless-stopped
+
   open-webui:
     image: ghcr.io/open-webui/open-webui:main
     container_name: open-webui
@@ -85,8 +105,10 @@ services:
       - AUDIO_TTS_OPENAI_API_KEY=not-needed
       - AUDIO_TTS_MODEL=kokoro
       - AUDIO_TTS_VOICE=af_sky
-      - AUDIO_STT_ENGINE=
-      - WHISPER_MODEL=small
+      - AUDIO_STT_ENGINE=openai
+      - AUDIO_STT_OPENAI_API_BASE_URL=http://speaches:8000/v1
+      - AUDIO_STT_OPENAI_API_KEY=not-needed
+      - AUDIO_STT_MODEL=deepdml/faster-whisper-large-v3-turbo-ct2
     volumes:
       - /mnt/cloud_storage/webui_data:/app/backend/data
     ports:
@@ -96,6 +118,7 @@ services:
       - searxng
       - pipelines
       - kokoro
+      - speaches
     networks:
       - cloud-net
     restart: unless-stopped
