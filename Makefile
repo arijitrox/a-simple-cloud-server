@@ -10,20 +10,21 @@ endef
 network:
 	docker network inspect cloud-net >/dev/null 2>&1 || docker network create cloud-net
 
+# devops must precede ai: open-webui's DATABASE_URL points at postgres (devops stack)
 up: network
 	$(call compose,infra)      up -d
 	$(call compose,homepage)   up -d
 	$(call compose,media)      up -d
-	$(call compose,ai)         up -d
 	$(call compose,devops)     up -d
+	$(call compose,ai)         up -d
 	$(call compose,compute)    up -d
 	$(call compose,monitoring) up -d
 
 down:
 	$(call compose,monitoring) down
 	$(call compose,compute)    down
-	$(call compose,devops)     down
 	$(call compose,ai)         down
+	$(call compose,devops)     down
 	$(call compose,media)      down
 	$(call compose,homepage)   down
 	$(call compose,infra)      down

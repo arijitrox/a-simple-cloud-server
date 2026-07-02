@@ -10,9 +10,24 @@ export RESTIC_PASSWORD
 
 log() { echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*"; }
 
+# Dead-man's-switch: ping HEALTHCHECK_URL (from .env, e.g. https://hc-ping.com/<uuid>)
+# on success, <url>/fail on failure. Unset = skip. Catches both script failures and
+# the timer never firing.
+finish() {
+  status=$?
+  rm -rf "$STAGING"
+  if [ -n "${HEALTHCHECK_URL:-}" ]; then
+    if [ "$status" -eq 0 ]; then
+      curl -fsS -m 10 --retry 3 "$HEALTHCHECK_URL" >/dev/null || true
+    else
+      curl -fsS -m 10 --retry 3 "$HEALTHCHECK_URL/fail" >/dev/null || true
+    fi
+  fi
+}
+trap finish EXIT
+
 log "=== Backup started ==="
 mkdir -p "$STAGING"
-trap 'rm -rf "$STAGING"' EXIT
 
 # 1. Postgres logical dump
 log "Dumping Postgres..."
@@ -28,8 +43,11 @@ restic -r "$LOCAL_REPO" backup \
   /mnt/cloud_storage/pipelines_data \
   /mnt/cloud_storage/jupyter_workspace \
   /mnt/cloud_storage/searxng \
+  /mnt/cloud_storage/jellyfin_config \
+  /mnt/cloud_storage/openclaw_config \
+  /mnt/cloud_storage/openclaw_auth \
+  /mnt/cloud_storage/caddy_data \
   "$STAGING" \
-  --exclude /mnt/cloud_storage/ollama_models \
   --tag daily \
   --verbose=0
 
@@ -51,5 +69,11 @@ log "Pruning remote repo..."
 restic -r "$REMOTE_REPO" forget --prune \
   --keep-weekly 4 --keep-monthly 6 \
   --quiet
+
+# 6. Weekly integrity check (Sundays) — reads 5% of pack data
+if [ "$(date +%u)" -eq 7 ]; then
+  log "Weekly integrity check of local repo..."
+  restic -r "$LOCAL_REPO" check --read-data-subset=5%
+fi
 
 log "=== Backup completed successfully ==="

@@ -143,12 +143,16 @@ bridge. Driven by the root `Makefile` (`make up/down/update/ps`) with `.env` at 
 
 1. `pg_dumpall` of Postgres (via local socket — no password needed).
 2. `restic` backup of `gitea_data, webui_data, minio_data, pipelines_data,
-   jupyter_workspace, searxng` + the dump → **local repo** `/mnt/data_4/restic-repo`.
-   Excludes `ollama_models` (large, re-downloadable).
+   jupyter_workspace, searxng, jellyfin_config, openclaw_config, openclaw_auth,
+   caddy_data` + the dump → **local repo** `/mnt/data_4/restic-repo`.
+   `ollama_models` is intentionally not included (large, re-downloadable).
 3. `restic copy` → **offsite** `rclone:gdrive:restic-repo` (Google Drive).
 4. Prune: local 7d/4w/6m, remote 4w/6m.
+5. Sundays: `restic check --read-data-subset=5%` on the local repo.
 
 Encryption: `RESTIC_PASSWORD` (in `.env`) — irrecoverable if lost.
+Alerting: script pings `HEALTHCHECK_URL` (`.env`, optional) on success, `/fail` on
+error — a dead-man's-switch that also catches the timer never firing.
 
 ---
 
