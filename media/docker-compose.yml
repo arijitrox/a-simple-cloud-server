@@ -14,8 +14,6 @@ services:
       - /mnt/data_3:/data/hdd_3
       - /mnt/data_4:/data/hdd_4
       - /mnt/data_5:/data/hdd_5
-    ports:
-      - "8096:8096"
     devices:
       - /dev/dri:/dev/dri
     group_add:

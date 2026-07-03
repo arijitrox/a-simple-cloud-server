@@ -7,23 +7,28 @@ Derived from the God-Mode server: AMD EPYC 7742, 94GB RAM, 3× RX 6700 XT, NVMe 
 
 ## Stack Overview
 
-| Service | Purpose | Port |
+| Service | Purpose | Host port |
 |---|---|---|
 | Ollama | Local LLM inference engine | 11434 |
-| Open-WebUI | Chat UI (ChatGPT-like) | 3000 |
-| OpenClaw | Self-hosted AI agent gateway (Ollama backend) | 18789 |
-| Pipelines | Custom middleware / function calling | 9099 |
-| SearXNG | Private web search for RAG | 8080 |
+| Open-WebUI | Chat UI (ChatGPT-like) | — |
+| OpenClaw | Self-hosted AI agent gateway (Ollama backend) | — |
+| Pipelines | Custom middleware / function calling | — |
+| SearXNG | Private web search for RAG | — |
+| Kokoro | TTS for Open-WebUI (CPU) | — |
+| Speaches | Whisper STT for Open-WebUI (CPU) | — |
 | Redis | Cache for SearXNG | — |
 | Postgres | Persistent DB for Open-WebUI | — |
 | Caddy | Reverse proxy + TLS | 80/443 |
 | Cloudflared | Cloudflare Tunnel (public access) | — |
-| Gitea | Self-hosted Git | 3001/2222 |
-| Jupyter Lab | GPU notebooks | 8888 |
-| MinIO | S3-compatible object storage | 9000/9001 |
+| Gitea | Self-hosted Git | — |
+| Jupyter Lab | GPU notebooks | — |
+| MinIO | S3-compatible object storage | 9000 |
 | Netdata | System + container monitoring | 19999 |
-| Jellyfin | Media server (optional) | 8096 |
-| Portainer | Docker web UI (optional) | 9443 |
+| Jellyfin | Media server (optional) | — |
+| Portainer | Docker web UI (optional) | — |
+
+Services without a host port are reached only through Caddy / the tunnel by
+container name — see `ARCHITECTURE.md` §3.
 
 ---
 
@@ -365,7 +370,6 @@ sudo ufw default allow outgoing
 sudo ufw allow 22/tcp
 sudo ufw allow 80/tcp
 sudo ufw allow 443/tcp
-sudo ufw allow 2222/tcp    # Gitea SSH
 sudo ufw allow in on tailscale0    # if using Tailscale
 sudo ufw enable
 ```

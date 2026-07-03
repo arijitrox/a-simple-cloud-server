@@ -14,8 +14,6 @@ services:
       - /mnt/cloud_storage/jupyter_workspace:/workspace
     working_dir: /workspace
     command: bash -c "pip install jupyterlab && jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root --NotebookApp.token='${JUPYTER_TOKEN}'"
-    ports:
-      - "8888:8888"
     networks:
       - cloud-net
     restart: unless-stopped

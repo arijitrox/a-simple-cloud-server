@@ -34,9 +34,10 @@ services:
       MINIO_ROOT_PASSWORD: "${MINIO_ROOT_PASSWORD}"
     volumes:
       - /mnt/cloud_storage/minio_data:/data
+    # S3 API stays published for auto_ingestor.py LAN clients; console (9001)
+    # is reached via storage.arijitroy.com only
     ports:
       - "9000:9000"
-      - "9001:9001"
     networks:
       - cloud-net
     restart: unless-stopped
@@ -48,9 +49,6 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - /mnt/cloud_storage/portainer_data:/data
-    ports:
-      - "9443:9443"
-      - "9002:9000"
     networks:
       - cloud-net
     restart: unless-stopped

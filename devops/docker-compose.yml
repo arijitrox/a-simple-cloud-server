@@ -22,9 +22,6 @@ services:
       - /mnt/cloud_storage/gitea_data:/data
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
-    ports:
-      - "3001:3000"
-      - "2222:22"
     networks:
       - cloud-net
     restart: unless-stopped

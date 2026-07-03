@@ -68,9 +68,10 @@ private security state see `SERVER_LOG.md` (gitignored).
 ### Caddy-only / not public
 `ollama` (Tailscale-only) · `pipes` (pipelines)
 
-> ⚠️ Docker publishes container ports to the host and **bypasses ufw** (11434, 9000/9001,
-> 8888, 3000, 9099, 3001/2222, 9443, 18789…). The host must stay behind NAT/the tunnel,
-> not be directly internet-facing. See `SERVER_LOG.md` → Service Exposure Review.
+> ⚠️ Docker-published ports **bypass ufw**. Only 9000 (MinIO S3) and 11434 (Ollama)
+> are published — kept for raw-IP LAN clients — plus Netdata's 19999 (host network).
+> The host must stay behind NAT/the tunnel, not be directly internet-facing.
+> See `SERVER_LOG.md` → Service Exposure Review.
 
 ---
 
@@ -83,20 +84,26 @@ bridge. Driven by the root `Makefile` (`make up/down/update/ps`) with `.env` at 
 |---|---|---|---|---|
 | `infra/` | caddy | `caddy:2-alpine` | 80, 443 | Reverse proxy, internal TLS |
 | | cloudflared | `cloudflare/cloudflared` | — | Public access tunnel |
-| | minio | `minio/minio` | 9000, 9001 | S3 object storage + console |
-| | portainer | `portainer-ce` | 9443, 9002 | Docker web UI (holds docker.sock) |
+| | minio | `minio/minio` | 9000 | S3 object storage + console |
+| | portainer | `portainer-ce` | — | Docker web UI (holds docker.sock) |
 | `ai/` | ollama | `ollama/ollama:rocm` | 11434 | Local LLM inference (GPU) |
-| | open-webui | `open-webui:main` | 3000 | Chat UI |
-| | pipelines | `open-webui/pipelines` | 9099 | OpenAI-compat middleware |
-| | searxng | `searxng/searxng` | 8080 | Private search for RAG |
+| | open-webui | `open-webui:main` | — | Chat UI |
+| | pipelines | `open-webui/pipelines` | — | OpenAI-compat middleware |
+| | searxng | `searxng/searxng` | — | Private search for RAG |
 | | redis | `redis:alpine` | — | SearXNG cache |
-| | openclaw-gateway | `openclaw/openclaw` | 18789 | AI agent gateway |
+| | kokoro | `remsky/kokoro-fastapi-cpu` | — | TTS for Open-WebUI (CPU) |
+| | speaches | `speaches-ai/speaches` | — | Whisper STT for Open-WebUI (CPU) |
+| | openclaw-gateway | `openclaw/openclaw` | — | AI agent gateway |
 | `devops/` | postgres | `postgres:16-alpine` | — (internal) | DB for Open-WebUI |
-| | gitea | `gitea/gitea` | 3001, 2222 | Git repo hosting (SQLite-backed) |
-| `compute/` | jupyter-lab | `rocm/pytorch` | 8888 | GPU notebooks |
-| `media/` | jellyfin | `linuxserver/jellyfin` | 8096 | Media server (GPU transcode) |
+| | gitea | `gitea/gitea` | — | Git repo hosting (SQLite-backed) |
+| `compute/` | jupyter-lab | `rocm/pytorch` | — | GPU notebooks |
+| `media/` | jellyfin | `linuxserver/jellyfin` | — | Media server (GPU transcode) |
 | `monitoring/` | netdata | `netdata/netdata` | 19999 (host net) | System + container metrics |
 | `homepage/` | homepage | `httpd:alpine` | — (internal) | Dashboard landing page |
+
+Only two services publish host ports, both for raw-IP LAN clients: **9000** (MinIO S3
+API — `auto_ingestor.py`) and **11434** (Ollama — VS Code Continue). Everything else
+is reachable solely through Caddy or the tunnel by container name.
 
 > CI note: there is intentionally **no Gitea Actions runner** — Gitea is repo hosting only.
 
