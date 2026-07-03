@@ -97,8 +97,10 @@ services:
     environment:
       - WHISPER__MODEL=deepdml/faster-whisper-large-v3-turbo-ct2
       - WHISPER__COMPUTE_TYPE=int8
-      - WHISPER__CPU_THREADS=4
-      - WHISPER__NUM_WORKERS=8
+      # single-user box: favor per-request latency (many threads) over
+      # concurrency (workers)
+      - WHISPER__CPU_THREADS=16
+      - WHISPER__NUM_WORKERS=2
       - HF_HOME=/home/ubuntu/.cache/huggingface
     volumes:
       - /mnt/cloud_storage/speaches_cache:/home/ubuntu/.cache/huggingface

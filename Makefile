@@ -42,7 +42,7 @@ update:
 	$(call compose,media)      pull && $(call compose,media)      up -d
 	$(call compose,devops)     pull && $(call compose,devops)     up -d
 	$(call compose,ai)         pull && $(call compose,ai)         up -d
-	$(call compose,compute)    pull && $(call compose,compute)    up -d
+	$(call compose,compute)    build --pull && $(call compose,compute) up -d
 	$(call compose,monitoring) pull && $(call compose,monitoring) up -d
 	docker image prune -f
 

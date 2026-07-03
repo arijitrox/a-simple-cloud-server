@@ -58,13 +58,8 @@ All stacks share an external Docker bridge network `cloud-net`. Caddy issues int
 ## Utilities
 
 - `auto_ingestor.py` — watches a directory and uploads new files to a MinIO bucket. Configure via `MINIO_URL`, `MINIO_ROOT_USER`, `MINIO_ROOT_PASSWORD`, and `MINIO_BUCKET` env vars.
-- `calculate_pi.py` / `gpu_pi.py` / `pytorch_test.py` — CPU/GPU sanity checks.
+- `scripts/calculate_pi.py` / `scripts/gpu_pi.py` / `scripts/pytorch_test.py` — CPU/GPU sanity checks.
 - `share_drives.sh` — one-shot Samba setup that exports `/mnt/cloud_storage` and all HDD bays as SMB shares to the LAN. Review before running (see Security notes).
-
-### Deprecated / cleanup candidates
-
-- `update_stack.sh` — **broken.** It runs `docker compose pull/up` from the repo root, but the monolith compose file was split into per-stack files, so there is no root `docker-compose.yml`. Use `make update` instead.
-- `calculatte_pi_gpu` — junk file: a misnamed, untracked-history copy of `calculate_pi.py` (CPU Monte-Carlo, not GPU). Safe to delete.
 
 ## Service exposure & security
 

@@ -1,6 +1,7 @@
 services:
   jupyter:
-    image: rocm/pytorch:latest
+    build: .
+    image: jupyter-rocm:local
     container_name: jupyter-lab
     devices:
       - /dev/kfd:/dev/kfd
@@ -14,7 +15,7 @@ services:
       - /mnt/cloud_storage/jupyter_workspace:/workspace
     working_dir: /workspace
     mem_limit: 16g
-    command: bash -c "pip install jupyterlab && jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root --NotebookApp.token='${JUPYTER_TOKEN}'"
+    command: jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root --NotebookApp.token='${JUPYTER_TOKEN}'
     networks:
       - cloud-net
     restart: unless-stopped
