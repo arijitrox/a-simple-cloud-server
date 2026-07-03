@@ -7,13 +7,21 @@ this host, P2 = day-2 operations, P3 = hygiene. Each item names the file to touc
 
 ## Status (2026-07-03)
 
-- **Done:** 0.1–0.6, 1.2, 2.1 (pins + manifest/prune; diun deferred until an alert
+- **Done:** 0.1–0.5, 1.2, 2.1 (pins + manifest/prune; diun deferred until an alert
   channel exists), 2.2 (healthchecks; `depends_on` deliberately left
-  `service_started` — soft deps must not block the chat UI), 2.3, 2.4.
-- **Open:** 1.1 (remove port/jupyter/monitor from the tunnel — dash.cloudflare.com,
-  owner-only), P3, filling `HEALTHCHECK_URL` in `.env` (needs a healthchecks.io
-  check), deleting `/mnt/cloud_storage/webui-db-pre-v0.10.2.sql.gz` once a
-  post-upgrade backup exists.
+  `service_started` — soft deps must not block the chat UI), 2.3, 2.4, P3
+  (jupyter Dockerfile, speaches 16 threads/2 workers verified by TTS→STT
+  round-trip, root cleanup — except the root-owned `Caddyfile/` dir, sudo).
+- **Open — owner actions only:**
+  1. **0.6: install the systemd units** (backup has not run since May 1!):
+     `sudo systemctl daemon-reload && sudo systemctl enable --now cloud-backup.timer
+     && sudo systemctl enable cloud-stack.service && sudo systemctl start
+     --no-block cloud-backup.service && sudo rmdir <repo>/Caddyfile`
+  2. 1.1: remove `port`/`jupyter`/`monitor` hostnames from the tunnel
+     (dash.cloudflare.com → Zero Trust → Tunnels), or gate with Access.
+  3. Create a healthchecks.io check and set `HEALTHCHECK_URL` in `.env`.
+  4. After the first good backup: delete
+     `/mnt/cloud_storage/webui-db-pre-v0.10.2.sql.gz`.
 
 ### 0.6 (found during execution) — systemd units were never installed
 `cloud-backup.timer` and `cloud-stack.service` existed only in the repo, not in
