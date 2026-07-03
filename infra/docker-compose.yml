@@ -26,7 +26,8 @@ services:
     restart: unless-stopped
 
   minio:
-    image: quay.io/minio/minio:latest
+    # Pinned: community MinIO releases are sparse post-AIStor; update deliberately
+    image: quay.io/minio/minio:RELEASE.2025-09-07T16-13-09Z
     container_name: minio
     command: server /data --console-address ":9001"
     environment:
@@ -38,12 +39,19 @@ services:
     # is reached via storage.arijitroy.com only
     ports:
       - "9000:9000"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     networks:
       - cloud-net
     restart: unless-stopped
 
   portainer:
-    image: portainer/portainer-ce:latest
+    # Pinned: holds docker.sock — upgrades to this one should be deliberate
+    image: portainer/portainer-ce:2.39.1
     container_name: portainer
     command: -H unix:///var/run/docker.sock
     volumes:

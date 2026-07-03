@@ -19,6 +19,12 @@ services:
     group_add:
       - "44"
       - "110"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8096/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
     networks:
       - cloud-net
     restart: unless-stopped

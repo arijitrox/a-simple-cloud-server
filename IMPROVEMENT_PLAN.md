@@ -5,6 +5,24 @@ Makefile, `scripts/backup.sh`, the Caddyfile, the systemd units, and the docs.
 Ordered by what actually protects you: P0 = data loss, P1 = who can reach root on
 this host, P2 = day-2 operations, P3 = hygiene. Each item names the file to touch.
 
+## Status (2026-07-03)
+
+- **Done:** 0.1–0.6, 1.2, 2.1 (pins + manifest/prune; diun deferred until an alert
+  channel exists), 2.2 (healthchecks; `depends_on` deliberately left
+  `service_started` — soft deps must not block the chat UI), 2.3, 2.4.
+- **Open:** 1.1 (remove port/jupyter/monitor from the tunnel — dash.cloudflare.com,
+  owner-only), P3, filling `HEALTHCHECK_URL` in `.env` (needs a healthchecks.io
+  check), deleting `/mnt/cloud_storage/webui-db-pre-v0.10.2.sql.gz` once a
+  post-upgrade backup exists.
+
+### 0.6 (found during execution) — systemd units were never installed
+`cloud-backup.timer` and `cloud-stack.service` existed only in the repo, not in
+`/etc/systemd/system` — the restic repo held a single snapshot from May 1, meaning
+**no backups ran for two months** and boot survival relied solely on Docker restart
+policies. Fix: install + enable both units, run an immediate backup. The
+dead-man's-switch (0.2) exists to make this class of failure loud; `HEALTHCHECK_URL`
+still needs to be set for it to work.
+
 ---
 
 ## P0 — Data safety

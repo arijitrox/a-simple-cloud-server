@@ -8,3 +8,6 @@ SERVER_LOG.md
 docs/
 docgen.log
 FAILURES.log
+
+# make update drops pre-update image manifests here (rollback reference)
+.image-manifests/

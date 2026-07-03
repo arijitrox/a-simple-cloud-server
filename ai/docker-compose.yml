@@ -14,8 +14,16 @@ services:
       - HSA_OVERRIDE_GFX_VERSION=10.3.0
     volumes:
       - /mnt/cloud_storage/ollama_models:/root/.ollama
+    # Published for raw-IP LAN clients (VS Code Continue); Tailscale uses
+    # ollama.arijitroy.com via Caddy
     ports:
       - "11434:11434"
+    healthcheck:
+      test: ["CMD-SHELL", "ollama ls >/dev/null 2>&1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
     networks:
       - cloud-net
     restart: unless-stopped
@@ -34,8 +42,16 @@ services:
     restart: unless-stopped
 
   redis:
-    image: redis:alpine
+    image: redis:8-alpine
     container_name: redis
+    # SearXNG cache: bounded with LRU eviction rather than growing until OOM
+    command: redis-server --maxmemory 512mb --maxmemory-policy allkeys-lru
+    mem_limit: 1g
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
     networks:
       - cloud-net
     restart: unless-stopped
@@ -47,6 +63,13 @@ services:
       - /mnt/cloud_storage/searxng:/etc/searxng
     environment:
       - SEARXNG_BASE_URL=http://searxng:8080/
+    mem_limit: 1g
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:8080/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     networks:
       - cloud-net
     restart: unless-stopped
@@ -54,6 +77,13 @@ services:
   kokoro:
     image: ghcr.io/remsky/kokoro-fastapi-cpu:latest
     container_name: kokoro
+    mem_limit: 4g
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8880/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
     networks:
       - cloud-net
     restart: unless-stopped
@@ -72,12 +102,21 @@ services:
       - HF_HOME=/home/ubuntu/.cache/huggingface
     volumes:
       - /mnt/cloud_storage/speaches_cache:/home/ubuntu/.cache/huggingface
+    mem_limit: 8g
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 120s
     networks:
       - cloud-net
     restart: unless-stopped
 
   open-webui:
-    image: ghcr.io/open-webui/open-webui:main
+    # Pinned release (was :main): floating a dev branch on a public service meant
+    # unreviewed updates; bump this tag deliberately after reading release notes
+    image: ghcr.io/open-webui/open-webui:v0.10.2
     container_name: open-webui
     environment:
       - OLLAMA_BASE_URL=http://ollama:11434
@@ -103,6 +142,15 @@ services:
       - AUDIO_STT_MODEL=deepdml/faster-whisper-large-v3-turbo-ct2
     volumes:
       - /mnt/cloud_storage/webui_data:/app/backend/data
+    mem_limit: 8g
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+    # deliberately service_started (not service_healthy): these are soft deps —
+    # a wedged TTS/STT container must not block the chat UI from starting
     depends_on:
       - ollama
       - searxng

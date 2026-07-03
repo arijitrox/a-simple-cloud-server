@@ -33,14 +33,18 @@ down:
 
 restart: down up
 
+# Records a pre-update image manifest (rollback reference) and prunes old layers
 update:
+	@mkdir -p $(REPO_ROOT).image-manifests
+	docker images --digests --format "{{.Repository}}:{{.Tag}} {{.Digest}}" | sort > $(REPO_ROOT).image-manifests/pre-update-$$(date +%Y%m%d-%H%M%S).txt
 	$(call compose,infra)      pull && $(call compose,infra)      up -d
 	$(call compose,homepage)   pull && $(call compose,homepage)   up -d
 	$(call compose,media)      pull && $(call compose,media)      up -d
-	$(call compose,ai)         pull && $(call compose,ai)         up -d
 	$(call compose,devops)     pull && $(call compose,devops)     up -d
+	$(call compose,ai)         pull && $(call compose,ai)         up -d
 	$(call compose,compute)    pull && $(call compose,compute)    up -d
 	$(call compose,monitoring) pull && $(call compose,monitoring) up -d
+	docker image prune -f
 
 ps:
 	docker ps --format "table {{.Names}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}"

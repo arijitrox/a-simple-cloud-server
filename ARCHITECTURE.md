@@ -84,18 +84,18 @@ bridge. Driven by the root `Makefile` (`make up/down/update/ps`) with `.env` at 
 |---|---|---|---|---|
 | `infra/` | caddy | `caddy:2-alpine` | 80, 443 | Reverse proxy, internal TLS |
 | | cloudflared | `cloudflare/cloudflared` | — | Public access tunnel |
-| | minio | `minio/minio` | 9000 | S3 object storage + console |
-| | portainer | `portainer-ce` | — | Docker web UI (holds docker.sock) |
+| | minio | `minio/minio` (pinned) | 9000 | S3 object storage + console |
+| | portainer | `portainer-ce` (pinned) | — | Docker web UI (holds docker.sock) |
 | `ai/` | ollama | `ollama/ollama:rocm` | 11434 | Local LLM inference (GPU) |
-| | open-webui | `open-webui:main` | — | Chat UI |
+| | open-webui | `open-webui` (pinned release) | — | Chat UI |
 | | pipelines | `open-webui/pipelines` | — | OpenAI-compat middleware |
 | | searxng | `searxng/searxng` | — | Private search for RAG |
-| | redis | `redis:alpine` | — | SearXNG cache |
+| | redis | `redis:8-alpine` | — | SearXNG cache |
 | | kokoro | `remsky/kokoro-fastapi-cpu` | — | TTS for Open-WebUI (CPU) |
 | | speaches | `speaches-ai/speaches` | — | Whisper STT for Open-WebUI (CPU) |
 | | openclaw-gateway | `openclaw/openclaw` | — | AI agent gateway |
 | `devops/` | postgres | `postgres:16-alpine` | — (internal) | DB for Open-WebUI |
-| | gitea | `gitea/gitea` | — | Git repo hosting (SQLite-backed) |
+| | gitea | `gitea/gitea:1` | — | Git repo hosting (SQLite-backed) |
 | `compute/` | jupyter-lab | `rocm/pytorch` | — | GPU notebooks |
 | `media/` | jellyfin | `linuxserver/jellyfin` | — | Media server (GPU transcode) |
 | `monitoring/` | netdata | `netdata/netdata` | 19999 (host net) | System + container metrics |

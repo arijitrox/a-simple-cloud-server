@@ -8,12 +8,19 @@ services:
       POSTGRES_DB: "${POSTGRES_DB}"
     volumes:
       - /mnt/cloud_storage/postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     networks:
       - cloud-net
     restart: unless-stopped
 
   gitea:
-    image: gitea/gitea:latest
+    # Pinned to the 1.x line — still gets minor/patch updates, never a surprise 2.0
+    image: gitea/gitea:1
     container_name: gitea
     environment:
       - USER_UID=1000
@@ -22,6 +29,12 @@ services:
       - /mnt/cloud_storage/gitea_data:/data
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:3000/api/healthz >/dev/null"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     networks:
       - cloud-net
     restart: unless-stopped
