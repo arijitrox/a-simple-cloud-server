@@ -12,29 +12,32 @@ this host, P2 = day-2 operations, P3 = hygiene. Each item names the file to touc
   `service_started` — soft deps must not block the chat UI), 2.3, 2.4, P3.
   Systemd units installed + enabled; `HEALTHCHECK_URL` set; first local snapshot
   `0588bbe1` (19.8 GiB, includes jellyfin/openclaw/caddy_data + staging dumps).
-- **0.7 (found during 0.6's first runs) — offsite copy has NEVER worked; fixed:**
+- **0.7 (found during 0.6's first runs) — offsite copy had NEVER worked; fixed
+  and verified 2026-07-03 night:**
   - `restic copy` used pre-0.14 flags (`--repo2`/`--password2`, unknown in
-    restic 0.17) → `copy --from-repo` + `RESTIC_FROM_PASSWORD`.
-  - root has no rclone config, so even with correct flags the copy can't reach
-    gdrive (`/root/.config/rclone/rclone.conf not found`). The remote repo is
-    initialized (May 1) but holds **zero snapshots**.
-  - Both failures pinged the healthcheck `/fail` URL — dead-man's-switch proven.
+    restic 0.17) → `copy --from-repo` + `RESTIC_FROM_PASSWORD` (env var proven
+    honored via negative password test against the real remote).
+  - root had no rclone config (`/root/.config/rclone/rclone.conf not found`) —
+    the remote repo sat initialized but **empty since May 1**. Fixed by copying
+    the user's rclone.conf to root (a copy, not a shared file: rclone rewrites
+    its config on token refresh, and a root-owned rewrite would break the
+    user's own rclone).
+  - Both failure modes pinged the healthcheck `/fail` URL — dead-man's-switch
+    proven live on day one.
   - (Non-bug: the scary "Gitea dump: 1.0K" log line was `du` under-reporting a
     fresh file before ext4 writeback; the dump was healthy. Logging now uses
     apparent size, dump goes via file + `docker cp`, and a <64K zip aborts the
-    run.)
-- **Open — owner actions only:**
-  1. Give root the gdrive remote, then re-run (first upload ~7 GiB):
-     `sudo mkdir -p /root/.config/rclone && sudo cp ~arijit/.config/rclone/rclone.conf
-     /root/.config/rclone/ && sudo chmod 600 /root/.config/rclone/rclone.conf &&
-     sudo systemctl start --no-block cloud-backup.service`
-     (A copy, not a shared file: rclone rewrites its config on token refresh, and
-     a root-owned rewrite would break the user's own rclone.)
-  2. 1.1: remove `port`/`jupyter`/`monitor` hostnames from the tunnel
+    run. A qwen3-coder:30b second-opinion review of backup.sh surfaced no valid
+    findings.)
+  - Verification run of 23:10: gitea dump 101K ✓, local snapshot `18c8dcc9` in
+    6 s ✓, gdrive copy in progress (~7 GiB first upload, Drive rate-limits it
+    to ~2–3 h; monitored).
+- **Open:**
+  1. Offsite upload completing (in progress 23:10→). After it goes green:
+     delete `/mnt/cloud_storage/webui-db-pre-v0.10.2.sql.gz`.
+  2. 1.1 (owner): remove `port`/`jupyter`/`monitor` hostnames from the tunnel
      (dash.cloudflare.com → Zero Trust → Tunnels), or gate with Access — all
-     four probes still answer publicly as of tonight.
-  3. After the first fully green run: delete
-     `/mnt/cloud_storage/webui-db-pre-v0.10.2.sql.gz`.
+     four probes (incl. `storage`) still answer publicly as of tonight.
 
 ### 0.6 (found during execution) — systemd units were never installed
 `cloud-backup.timer` and `cloud-stack.service` existed only in the repo, not in
