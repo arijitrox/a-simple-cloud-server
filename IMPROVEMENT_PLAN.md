@@ -5,7 +5,7 @@ Makefile, `scripts/backup.sh`, the Caddyfile, the systemd units, and the docs.
 Ordered by what actually protects you: P0 = data loss, P1 = who can reach root on
 this host, P2 = day-2 operations, P3 = hygiene. Each item names the file to touch.
 
-## Status (2026-07-03, evening)
+## Status (2026-07-04 — COMPLETE)
 
 - **Done:** 0.1–0.6, 1.2, 2.1 (pins + manifest/prune; diun deferred until an alert
   channel exists), 2.2 (healthchecks; `depends_on` deliberately left
@@ -30,14 +30,20 @@ this host, P2 = day-2 operations, P3 = hygiene. Each item names the file to touc
     run. A qwen3-coder:30b second-opinion review of backup.sh surfaced no valid
     findings.)
   - Verification run of 23:10: gitea dump 101K ✓, local snapshot `18c8dcc9` in
-    6 s ✓, gdrive copy in progress (~7 GiB first upload, Drive rate-limits it
-    to ~2–3 h; monitored).
-- **Open:**
-  1. Offsite upload completing (in progress 23:10→). After it goes green:
-     delete `/mnt/cloud_storage/webui-db-pre-v0.10.2.sql.gz`.
-  2. 1.1 (owner): remove `port`/`jupyter`/`monitor` hostnames from the tunnel
-     (dash.cloudflare.com → Zero Trust → Tunnels), or gate with Access — all
-     four probes (incl. `storage`) still answer publicly as of tonight.
+    6 s ✓. The gdrive copy died at 23:44 on Drive `rateLimitExceeded` (restic
+    got a 500 and aborted; dead-man's-switch pinged `/fail` — working as
+    designed). Rerun 2026-07-04 00:05 completed at 02:38: full copy resumed
+    and finished (14.96 GiB, 3 snapshots on remote, prune OK). **Offsite
+    pipeline verified end-to-end — 0.7 closed.** Note: first upload was
+    ~15 GiB, not the ~7 GiB estimated earlier.
+- **1.1 closed 2026-07-04:** `jupyter` route deleted (hostname no longer
+  resolves); `port`/`monitor`/`storage` gated with Cloudflare Access
+  (self-hosted apps, allow-list = owner email). Probed externally: all three
+  302 to `arijitroy.cloudflareaccess.com`, jupyter dead. Old webui dump
+  deleted (local + the stray My Drive copy).
+- **Open: none. Plan complete 2026-07-04.** Steady state: nightly 03:03
+  backup (local restic + gdrive copy, dead-man's-switch alerting), Access in
+  front of every admin surface, only 9000/11434 published to LAN.
 
 ### 0.6 (found during execution) — systemd units were never installed
 `cloud-backup.timer` and `cloud-stack.service` existed only in the repo, not in
