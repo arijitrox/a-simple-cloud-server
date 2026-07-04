@@ -3,7 +3,7 @@
 AI homelab: one `docker compose` stack per subdir (`infra/ ai/ devops/ compute/
 media/ monitoring/ homepage/`), shared external `cloud-net` bridge, `.env` at repo
 root. Maps: `ARCHITECTURE.md` (how it works), `AI_RACK_SETUP.md` (replication),
-`IMPROVEMENT_PLAN.md` (review findings + status), `SERVER_LOG.md` (gitignored,
+`SERVER_LOG.md` (gitignored,
 private security state).
 
 ## Commands
