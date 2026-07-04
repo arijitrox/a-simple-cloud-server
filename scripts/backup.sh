@@ -32,13 +32,14 @@ mkdir -p "$STAGING"
 # 1. Postgres logical dump
 log "Dumping Postgres..."
 docker exec postgres pg_dumpall -U "$POSTGRES_USER" | gzip > "$STAGING/postgres_full.sql.gz"
-log "Postgres dump: $(du -sh "$STAGING/postgres_full.sql.gz" | cut -f1)"
+log "Postgres dump: $(du -sh --apparent-size "$STAGING/postgres_full.sql.gz" | cut -f1)"
 
 # 2. Gitea consistent dump — the live SQLite copy inside gitea_data can be torn
 # mid-write; this captures DB + config safely. Repos are skipped (bare git dirs
-# snapshot fine and are already in the restic set below). Dump to a file inside
-# the container, not stdout: docker exec's stdout stream can be truncated on a
-# fast exit, which silently produced a 1K zip.
+# snapshot fine and are already in the restic set below). Dump to a file and
+# size-check it: a truncated zip here would only be noticed at restore time.
+# (Size via stat/--apparent-size — plain du under-reports fresh files before
+# ext4 writeback and once printed "1.0K" for a healthy 103K zip.)
 log "Dumping Gitea..."
 docker exec -u 1000 gitea sh -c \
   'rm -f /tmp/gitea-dump.zip && gitea dump --skip-repository --skip-log -c /data/gitea/conf/app.ini -f /tmp/gitea-dump.zip'
@@ -49,7 +50,7 @@ if [ "$gitea_dump_bytes" -lt 65536 ]; then
   log "Gitea dump truncated (${gitea_dump_bytes} bytes) — a real dump holds the DB and is >64K"
   exit 1
 fi
-log "Gitea dump: $(du -sh "$STAGING/gitea-dump.zip" | cut -f1)"
+log "Gitea dump: $(du -sh --apparent-size "$STAGING/gitea-dump.zip" | cut -f1)"
 
 # 3. Backup to local repo
 log "Backing up to local repo..."
