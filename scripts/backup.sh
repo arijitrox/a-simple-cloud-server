@@ -36,10 +36,19 @@ log "Postgres dump: $(du -sh "$STAGING/postgres_full.sql.gz" | cut -f1)"
 
 # 2. Gitea consistent dump — the live SQLite copy inside gitea_data can be torn
 # mid-write; this captures DB + config safely. Repos are skipped (bare git dirs
-# snapshot fine and are already in the restic set below).
+# snapshot fine and are already in the restic set below). Dump to a file inside
+# the container, not stdout: docker exec's stdout stream can be truncated on a
+# fast exit, which silently produced a 1K zip.
 log "Dumping Gitea..."
-docker exec -u 1000 gitea gitea dump --skip-repository --skip-log \
-  -c /data/gitea/conf/app.ini -f - > "$STAGING/gitea-dump.zip"
+docker exec -u 1000 gitea sh -c \
+  'rm -f /tmp/gitea-dump.zip && gitea dump --skip-repository --skip-log -c /data/gitea/conf/app.ini -f /tmp/gitea-dump.zip'
+docker cp gitea:/tmp/gitea-dump.zip "$STAGING/gitea-dump.zip"
+docker exec -u 1000 gitea rm -f /tmp/gitea-dump.zip
+gitea_dump_bytes=$(stat -c%s "$STAGING/gitea-dump.zip")
+if [ "$gitea_dump_bytes" -lt 65536 ]; then
+  log "Gitea dump truncated (${gitea_dump_bytes} bytes) — a real dump holds the DB and is >64K"
+  exit 1
+fi
 log "Gitea dump: $(du -sh "$STAGING/gitea-dump.zip" | cut -f1)"
 
 # 3. Backup to local repo
@@ -67,9 +76,8 @@ restic -r "$LOCAL_REPO" forget --prune \
 
 # 5. Copy latest snapshot to Google Drive
 log "Copying to Google Drive..."
-restic -r "$LOCAL_REPO" copy \
-  --repo2 "$REMOTE_REPO" \
-  --password2 "$RESTIC_PASSWORD" \
+RESTIC_FROM_PASSWORD="$RESTIC_PASSWORD" restic -r "$REMOTE_REPO" copy \
+  --from-repo "$LOCAL_REPO" \
   --quiet
 
 # 6. Prune remote (keep 4 weekly, 6 monthly — less granular for offsite)

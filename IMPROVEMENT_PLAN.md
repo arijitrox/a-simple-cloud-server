@@ -5,22 +5,28 @@ Makefile, `scripts/backup.sh`, the Caddyfile, the systemd units, and the docs.
 Ordered by what actually protects you: P0 = data loss, P1 = who can reach root on
 this host, P2 = day-2 operations, P3 = hygiene. Each item names the file to touch.
 
-## Status (2026-07-03)
+## Status (2026-07-03, evening)
 
-- **Done:** 0.1–0.5, 1.2, 2.1 (pins + manifest/prune; diun deferred until an alert
+- **Done:** 0.1–0.6, 1.2, 2.1 (pins + manifest/prune; diun deferred until an alert
   channel exists), 2.2 (healthchecks; `depends_on` deliberately left
-  `service_started` — soft deps must not block the chat UI), 2.3, 2.4, P3
-  (jupyter Dockerfile, speaches 16 threads/2 workers verified by TTS→STT
-  round-trip, root cleanup — except the root-owned `Caddyfile/` dir, sudo).
+  `service_started` — soft deps must not block the chat UI), 2.3, 2.4, P3.
+  Systemd units installed + enabled; `HEALTHCHECK_URL` set; first local snapshot
+  `0588bbe1` (19.8 GiB, includes jellyfin/openclaw/caddy_data + staging dumps).
+- **0.7 (found during 0.6's first run) — two backup.sh bugs, both fixed:**
+  - Gitea dump streamed through `docker exec` stdout arrived truncated (1.0K zip,
+    no DB). Now dumps to a file in-container, `docker cp`s it out, and aborts the
+    run if the zip is <64K.
+  - The Google Drive copy used pre-restic-0.14 flags (`--repo2`/`--password2`,
+    unknown in restic 0.17) — every offsite copy would have failed. Now
+    `copy --from-repo` + `RESTIC_FROM_PASSWORD`. The failure did ping the
+    healthcheck `/fail` URL, so the dead-man's-switch is proven live.
 - **Open — owner actions only:**
-  1. **0.6: install the systemd units** (backup has not run since May 1!):
-     `sudo systemctl daemon-reload && sudo systemctl enable --now cloud-backup.timer
-     && sudo systemctl enable cloud-stack.service && sudo systemctl start
-     --no-block cloud-backup.service && sudo rmdir <repo>/Caddyfile`
+  1. Re-run to verify the fixes end-to-end (first gdrive upload is ~7 GiB):
+     `sudo systemctl start --no-block cloud-backup.service`
   2. 1.1: remove `port`/`jupyter`/`monitor` hostnames from the tunnel
-     (dash.cloudflare.com → Zero Trust → Tunnels), or gate with Access.
-  3. Create a healthchecks.io check and set `HEALTHCHECK_URL` in `.env`.
-  4. After the first good backup: delete
+     (dash.cloudflare.com → Zero Trust → Tunnels), or gate with Access — all
+     four probes still answer publicly as of tonight.
+  3. After the first fully green run: delete
      `/mnt/cloud_storage/webui-db-pre-v0.10.2.sql.gz`.
 
 ### 0.6 (found during execution) — systemd units were never installed
