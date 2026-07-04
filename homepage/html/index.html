@@ -3,493 +3,171 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Arijit's Homelab</title>
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    :root {
-      --bg:       #0d1117;
-      --surface:  #161b22;
-      --border:   #30363d;
-      --text:     #e6edf3;
-      --muted:    #8b949e;
-      --accent:   #58a6ff;
-
-      --ai:       #a371f7;
-      --media:    #f78166;
-      --storage:  #3fb950;
-      --devops:   #d29922;
-      --compute:  #58a6ff;
-      --monitor:  #ec6547;
-    }
-
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-      min-height: 100vh;
-    }
-
-    /* ── NAV ── */
-    nav {
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      padding: 0 2rem;
-      height: 60px;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-    }
-
-    .nav-brand {
-      font-size: 1.1rem;
-      font-weight: 600;
-      color: var(--text);
-      text-decoration: none;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .nav-brand svg { opacity: 0.8; }
-
-    .nav-links {
-      display: flex;
-      align-items: center;
-      gap: 0.25rem;
-      margin-left: auto;
-      list-style: none;
-    }
-
-    .nav-links a {
-      color: var(--muted);
-      text-decoration: none;
-      font-size: 0.875rem;
-      padding: 0.4rem 0.75rem;
-      border-radius: 6px;
-      transition: color 0.15s, background 0.15s;
-    }
-
-    .nav-links a:hover { color: var(--text); background: rgba(255,255,255,0.06); }
-
-    /* Tools dropdown */
-    .dropdown { position: relative; }
-
-    .dropdown-toggle {
-      color: var(--muted);
-      text-decoration: none;
-      font-size: 0.875rem;
-      padding: 0.4rem 0.75rem;
-      border-radius: 6px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 0.3rem;
-      transition: color 0.15s, background 0.15s;
-      user-select: none;
-    }
-
-    .dropdown-toggle:hover,
-    .dropdown.open .dropdown-toggle {
-      color: var(--text);
-      background: rgba(255,255,255,0.06);
-    }
-
-    .dropdown-toggle svg { transition: transform 0.2s; }
-    .dropdown.open .dropdown-toggle svg { transform: rotate(180deg); }
-
-    .dropdown-menu {
-      display: none;
-      position: absolute;
-      right: 0;
-      top: calc(100% + 8px);
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      min-width: 220px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.5);
-      padding: 0.4rem 0;
-      overflow: hidden;
-    }
-
-    .dropdown.open .dropdown-menu { display: block; }
-
-    .dropdown-menu .section-label {
-      font-size: 0.7rem;
-      font-weight: 600;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      color: var(--muted);
-      padding: 0.6rem 1rem 0.2rem;
-    }
-
-    .dropdown-menu a {
-      display: flex;
-      align-items: center;
-      gap: 0.6rem;
-      padding: 0.45rem 1rem;
-      color: var(--text);
-      text-decoration: none;
-      font-size: 0.875rem;
-      transition: background 0.12s;
-    }
-
-    .dropdown-menu a:hover { background: rgba(255,255,255,0.06); }
-
-    .dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      flex-shrink: 0;
-    }
-
-    .dropdown-menu hr {
-      border: none;
-      border-top: 1px solid var(--border);
-      margin: 0.3rem 0;
-    }
-
-    /* ── HERO ── */
-    .hero {
-      text-align: center;
-      padding: 4rem 2rem 2rem;
-    }
-
-    .hero h1 {
-      font-size: 2rem;
-      font-weight: 700;
-      margin-bottom: 0.5rem;
-    }
-
-    .hero p {
-      color: var(--muted);
-      font-size: 1rem;
-    }
-
-    /* ── GRID ── */
-    main {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 2rem;
-    }
-
-    .category {
-      margin-bottom: 2.5rem;
-    }
-
-    .category-header {
-      display: flex;
-      align-items: center;
-      gap: 0.6rem;
-      margin-bottom: 1rem;
-    }
-
-    .category-header h2 {
-      font-size: 0.8rem;
-      font-weight: 600;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--muted);
-    }
-
-    .category-line {
-      flex: 1;
-      height: 1px;
-      background: var(--border);
-    }
-
-    .cards {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-      gap: 1rem;
-    }
-
-    .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 1.25rem;
-      text-decoration: none;
-      color: var(--text);
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-      transition: border-color 0.15s, transform 0.15s, box-shadow 0.15s;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .card::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 3px;
-      background: var(--card-accent, var(--accent));
-      opacity: 0;
-      transition: opacity 0.15s;
-    }
-
-    .card:hover {
-      border-color: var(--card-accent, var(--accent));
-      transform: translateY(-2px);
-      box-shadow: 0 4px 16px rgba(0,0,0,0.3);
-    }
-
-    .card:hover::before { opacity: 1; }
-
-    .card-icon {
-      font-size: 1.5rem;
-      line-height: 1;
-    }
-
-    .card-title {
-      font-size: 0.95rem;
-      font-weight: 600;
-    }
-
-    .card-desc {
-      font-size: 0.78rem;
-      color: var(--muted);
-      line-height: 1.4;
-    }
-
-    .card-url {
-      font-size: 0.72rem;
-      color: var(--muted);
-      margin-top: auto;
-      opacity: 0.6;
-    }
-
-    /* ── FOOTER ── */
-    footer {
-      text-align: center;
-      padding: 2rem;
-      color: var(--muted);
-      font-size: 0.78rem;
-      border-top: 1px solid var(--border);
-      margin-top: 2rem;
-    }
-  </style>
+  <title>Arijit Roy — Technology, Photography &amp; the Homelab</title>
+  <meta name="description" content="Arijit Roy — senior test engineer at AMD (GPU validation &amp; performance analysis), photographer, and builder of a self-hosted AI homelab in the Greater Toronto Area." />
+  <link rel="canonical" href="https://arijitroy.com/" />
+  <meta property="og:title" content="Arijit Roy" />
+  <meta property="og:description" content="Technology, photography and a self-hosted AI homelab." />
+  <meta property="og:image" content="https://arijitroy.com/assets/photos/full/29611152045.jpg" />
+  <meta property="og:type" content="website" />
+  <link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="/assets/css/site.css" />
 </head>
 <body>
 
-<nav>
-  <a class="nav-brand" href="/">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-      <rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>
-    </svg>
-    Arijit's Homelab
-  </a>
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="/">Arijit Roy</a>
+    <nav class="site-nav">
+      <a href="/" aria-current="page">Home</a>
+      <a href="/photography.html">Photography</a>
+      <a href="/homelab.html">Homelab</a>
+      <a href="/blog/">Blog</a>
+    </nav>
+  </div>
+</header>
 
-  <ul class="nav-links">
-    <li><a href="/">Home</a></li>
-    <li class="dropdown" id="toolsDropdown">
-      <span class="dropdown-toggle" onclick="toggleDropdown()">
-        Tools
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-          <polyline points="6 9 12 15 18 9"/>
-        </svg>
-      </span>
-      <div class="dropdown-menu">
-
-        <div class="section-label">AI</div>
-        <a href="https://chat.arijitroy.com" target="_blank">
-          <span class="dot" style="background:var(--ai)"></span> Open-WebUI
-        </a>
-        <a href="https://claw.arijitroy.com" target="_blank">
-          <span class="dot" style="background:var(--ai)"></span> OpenClaw
-        </a>
-        <a href="https://search.arijitroy.com" target="_blank">
-          <span class="dot" style="background:var(--ai)"></span> SearXNG
-        </a>
-        <a href="https://pipes.arijitroy.com" target="_blank">
-          <span class="dot" style="background:var(--ai)"></span> Pipelines
-        </a>
-
-        <hr/>
-        <div class="section-label">Media</div>
-        <a href="https://media.arijitroy.com" target="_blank">
-          <span class="dot" style="background:var(--media)"></span> Jellyfin
-        </a>
-
-        <hr/>
-        <div class="section-label">Storage</div>
-        <a href="https://storage.arijitroy.com" target="_blank">
-          <span class="dot" style="background:var(--storage)"></span> MinIO
-        </a>
-
-        <hr/>
-        <div class="section-label">DevOps</div>
-        <a href="https://git.arijitroy.com" target="_blank">
-          <span class="dot" style="background:var(--devops)"></span> Gitea
-        </a>
-        <a href="https://port.arijitroy.com" target="_blank">
-          <span class="dot" style="background:var(--devops)"></span> Portainer
-        </a>
-
-        <hr/>
-        <div class="section-label">Compute</div>
-        <a href="https://jupyter.arijitroy.com" target="_blank">
-          <span class="dot" style="background:var(--compute)"></span> JupyterLab
-        </a>
-
-        <hr/>
-        <div class="section-label">Monitoring</div>
-        <a href="https://monitor.arijitroy.com" target="_blank">
-          <span class="dot" style="background:var(--monitor)"></span> Netdata
-        </a>
-
-      </div>
-    </li>
-  </ul>
-</nav>
-
+<!-- HERO -->
 <div class="hero">
-  <h1>Server Dashboard</h1>
-  <p>All services in one place</p>
+  <div class="hero-bg" style="background-image:url('/assets/photos/full/29611152045.jpg')"></div>
+  <div class="wrap">
+    <p class="kicker">Greater Toronto Area, Canada</p>
+    <h1>Arijit Roy</h1>
+    <p class="tagline">I validate unreleased GPUs at AMD by day. Photographer and
+    self-hosted AI infrastructure builder the rest of the time.</p>
+    <div class="btn-row">
+      <a class="btn btn-solid" href="/photography.html">View photography</a>
+      <a class="btn btn-ghost" href="/homelab.html">Tour the homelab</a>
+    </div>
+  </div>
+  <span class="photo-credit">“Awakening of Darkness” — own work</span>
 </div>
 
-<main>
-
-  <!-- AI -->
-  <div class="category">
-    <div class="category-header">
-      <h2>AI</h2>
-      <div class="category-line"></div>
+<!-- ABOUT -->
+<section id="about">
+  <div class="wrap split">
+    <div>
+      <p class="kicker">About</p>
+      <h2>Performance numbers by profession, light by obsession.</h2>
+      <p>I'm a <strong>Senior Test Engineer at AMD</strong> with four-plus years
+      validating unreleased GPU hardware. I lead performance testing for mainstream
+      Radeon dGPU launches across a 22-node cluster, keep the Python benchmark
+      automation honest, and drive the competitive analysis that tells the business
+      how the silicon really stacks up.</p>
+      <p>Away from the benchmarks I carry a camera. I've been shooting since 2009 —
+      street scenes, birds, landscapes, and the occasional macro — published under the
+      name <a href="https://www.flickr.com/photos/arigraphy/">Arigraphy</a> on Flickr.</p>
+      <p>I also run a small datacentre that lives in my home: an EPYC server with
+      three GPUs serving open-weight AI models, storage, media, and git — all
+      self-hosted, all open source. It's where I'm building MLOps fluency on ROCm,
+      and I'm open to conversations about <strong>MLOps and AI-infrastructure
+      roles</strong>. <a href="/homelab.html">The full story is here.</a></p>
+      <ul class="fact-list">
+        <li>Senior Test Engineer, GPU validation &amp; performance analysis — AMD, 2022–present</li>
+        <li>Before that: hands-on hardware diagnostics &amp; QA — Geek Squad, Mobile Klinik, uBreakiFix, Likewize</li>
+        <li>M.Sc. Computer Science, Coventry University</li>
+        <li>Photographer since 2009 — flickr.com/photos/arigraphy</li>
+        <li>Trilingual: Bengali, Hindi, English</li>
+      </ul>
     </div>
-    <div class="cards">
-      <a class="card" href="https://chat.arijitroy.com" target="_blank" style="--card-accent:var(--ai)">
-        <div class="card-icon">🤖</div>
-        <div class="card-title">Open-WebUI</div>
-        <div class="card-desc">Chat interface for Ollama models and AI pipelines</div>
-        <div class="card-url">chat.arijitroy.com</div>
+    <img src="/assets/photos/full/37782062646.jpg"
+         alt="Laughing Buddha — photograph by Arijit Roy" />
+  </div>
+</section>
+
+<!-- FEATURED PHOTOGRAPHY -->
+<section id="photos" style="padding-top:0">
+  <div class="wrap">
+    <div class="sec-head">
+      <div>
+        <p class="kicker">Arigraphy</p>
+        <h2>Selected photographs</h2>
+      </div>
+      <a class="more" href="/photography.html">View the gallery →</a>
+    </div>
+    <div class="photo-grid">
+      <a href="/photography.html"><img src="/assets/photos/thumbs/22448889760.jpg" alt="Sailing" loading="lazy" /><span class="cap">Sailing</span></a>
+      <a href="/photography.html"><img src="/assets/photos/thumbs/23753652343.jpg" alt="Peacock" loading="lazy" /><span class="cap">Peacock</span></a>
+      <a href="/photography.html"><img src="/assets/photos/thumbs/24257081690.jpg" alt="Stunts" loading="lazy" /><span class="cap">Stunts</span></a>
+      <a href="/photography.html"><img src="/assets/photos/thumbs/17926628863.jpg" alt="Reds and Oranges" loading="lazy" /><span class="cap">Reds and Oranges</span></a>
+      <a href="/photography.html"><img src="/assets/photos/thumbs/33001265231.jpg" alt="Surface Tension" loading="lazy" /><span class="cap">Surface Tension</span></a>
+      <a href="/photography.html"><img src="/assets/photos/thumbs/28937403895.jpg" alt="Glowing heart" loading="lazy" /><span class="cap">Glowing heart</span></a>
+    </div>
+  </div>
+</section>
+
+<!-- HOMELAB TEASER -->
+<section id="lab" style="padding-top:0">
+  <div class="wrap">
+    <div class="sec-head">
+      <div>
+        <p class="kicker">Homelab</p>
+        <h2>A datacentre that lives at home</h2>
+      </div>
+      <a class="more" href="/homelab.html">Full tour →</a>
+    </div>
+    <div class="card-grid">
+      <a class="card" href="/homelab.html">
+        <span class="card-icon">🧠</span>
+        <h3>Self-hosted AI</h3>
+        <p>Open-weight LLMs served from three GPUs — chat, coding agents, speech, and
+        image pipelines with zero cloud dependency.</p>
+        <span class="card-meta">Ollama · Open WebUI · ROCm</span>
       </a>
-      <a class="card" href="https://search.arijitroy.com" target="_blank" style="--card-accent:var(--ai)">
-        <div class="card-icon">🔍</div>
-        <div class="card-title">SearXNG</div>
-        <div class="card-desc">Privacy-respecting metasearch engine</div>
-        <div class="card-url">search.arijitroy.com</div>
+      <a class="card" href="/homelab.html">
+        <span class="card-icon">⚙️</span>
+        <h3>64-core EPYC backbone</h3>
+        <p>A single AMD EPYC 7742 box runs the whole estate — AI, storage, media, git,
+        and monitoring — as isolated Docker stacks.</p>
+        <span class="card-meta">Docker Compose · Caddy · Cloudflare Tunnel</span>
       </a>
-      <a class="card" href="https://pipes.arijitroy.com" target="_blank" style="--card-accent:var(--ai)">
-        <div class="card-icon">⚙️</div>
-        <div class="card-title">Pipelines</div>
-        <div class="card-desc">OpenWebUI pipeline processor and API proxy</div>
-        <div class="card-url">pipes.arijitroy.com</div>
-      </a>
-      <a class="card" href="https://claw.arijitroy.com" target="_blank" style="--card-accent:var(--ai)">
-        <div class="card-icon">🦾</div>
-        <div class="card-title">OpenClaw</div>
-        <div class="card-desc">Self-hosted AI agent gateway with Ollama backend</div>
-        <div class="card-url">claw.arijitroy.com</div>
+      <a class="card" href="/homelab.html">
+        <span class="card-icon">🔐</span>
+        <h3>Private by default</h3>
+        <p>Everything self-hosted and encrypted in transit, with offsite backups and a
+        deliberately small public surface.</p>
+        <span class="card-meta">MinIO · restic · Tailscale</span>
       </a>
     </div>
   </div>
+</section>
 
-  <!-- Media -->
-  <div class="category">
-    <div class="category-header">
-      <h2>Media</h2>
-      <div class="category-line"></div>
+<!-- LATEST WRITING -->
+<section id="writing" style="padding-top:0">
+  <div class="wrap">
+    <div class="sec-head">
+      <div>
+        <p class="kicker">Writing</p>
+        <h2>Notes &amp; posts</h2>
+      </div>
+      <a class="more" href="/blog/">All posts →</a>
     </div>
-    <div class="cards">
-      <a class="card" href="https://media.arijitroy.com" target="_blank" style="--card-accent:var(--media)">
-        <div class="card-icon">🎬</div>
-        <div class="card-title">Jellyfin</div>
-        <div class="card-desc">Media server with GPU transcoding</div>
-        <div class="card-url">media.arijitroy.com</div>
-      </a>
-    </div>
+    <ul class="post-list">
+      <li>
+        <a href="/blog/hello.html">
+          <span>
+            <span class="post-title">Why I self-host my own AI</span>
+            <p>What it takes — and what it gives back — to run your own models on your own silicon.</p>
+          </span>
+          <span class="post-date">July 2026</span>
+        </a>
+      </li>
+    </ul>
   </div>
+</section>
 
-  <!-- Storage -->
-  <div class="category">
-    <div class="category-header">
-      <h2>Storage</h2>
-      <div class="category-line"></div>
-    </div>
-    <div class="cards">
-      <a class="card" href="https://storage.arijitroy.com" target="_blank" style="--card-accent:var(--storage)">
-        <div class="card-icon">🗄️</div>
-        <div class="card-title">MinIO</div>
-        <div class="card-desc">S3-compatible object storage console</div>
-        <div class="card-url">storage.arijitroy.com</div>
-      </a>
-    </div>
+<footer class="site-foot">
+  <div class="wrap">
+    <span>© 2026 Arijit Roy · All photographs are my own work.</span>
+    <ul class="foot-links">
+      <li><a href="https://www.linkedin.com/in/arijitroypro/">LinkedIn</a></li>
+      <li><a href="https://github.com/arijitrox">GitHub</a></li>
+      <li><a href="https://www.flickr.com/photos/arigraphy/">Flickr</a></li>
+      <li><a href="/blog/feed.xml">RSS</a></li>
+      <li><a href="/lab.html">Lab console</a></li>
+    </ul>
   </div>
-
-  <!-- DevOps -->
-  <div class="category">
-    <div class="category-header">
-      <h2>DevOps</h2>
-      <div class="category-line"></div>
-    </div>
-    <div class="cards">
-      <a class="card" href="https://git.arijitroy.com" target="_blank" style="--card-accent:var(--devops)">
-        <div class="card-icon">🐙</div>
-        <div class="card-title">Gitea</div>
-        <div class="card-desc">Self-hosted Git service with CI runner</div>
-        <div class="card-url">git.arijitroy.com</div>
-      </a>
-      <a class="card" href="https://port.arijitroy.com" target="_blank" style="--card-accent:var(--devops)">
-        <div class="card-icon">🐳</div>
-        <div class="card-title">Portainer</div>
-        <div class="card-desc">Docker container management UI</div>
-        <div class="card-url">port.arijitroy.com</div>
-      </a>
-    </div>
-  </div>
-
-  <!-- Compute -->
-  <div class="category">
-    <div class="category-header">
-      <h2>Compute</h2>
-      <div class="category-line"></div>
-    </div>
-    <div class="cards">
-      <a class="card" href="https://jupyter.arijitroy.com" target="_blank" style="--card-accent:var(--compute)">
-        <div class="card-icon">📓</div>
-        <div class="card-title">JupyterLab</div>
-        <div class="card-desc">ROCm PyTorch notebook environment</div>
-        <div class="card-url">jupyter.arijitroy.com</div>
-      </a>
-    </div>
-  </div>
-
-  <!-- Monitoring -->
-  <div class="category">
-    <div class="category-header">
-      <h2>Monitoring</h2>
-      <div class="category-line"></div>
-    </div>
-    <div class="cards">
-      <a class="card" href="https://monitor.arijitroy.com" target="_blank" style="--card-accent:var(--monitor)">
-        <div class="card-icon">📊</div>
-        <div class="card-title">Netdata</div>
-        <div class="card-desc">Real-time server performance monitoring</div>
-        <div class="card-url">monitor.arijitroy.com</div>
-      </a>
-    </div>
-  </div>
-
-</main>
-
-<footer>
-  arijitroy.com &mdash; self-hosted infrastructure
 </footer>
-
-<script>
-  function toggleDropdown() {
-    document.getElementById('toolsDropdown').classList.toggle('open');
-  }
-  document.addEventListener('click', function(e) {
-    const dd = document.getElementById('toolsDropdown');
-    if (!dd.contains(e.target)) dd.classList.remove('open');
-  });
-</script>
 
 </body>
 </html>

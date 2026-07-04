@@ -63,7 +63,7 @@ private security state see `SERVER_LOG.md` (gitignored).
 ### Public hostnames (in the tunnel)
 `chat`→open-webui · `git`→gitea · `media`→jellyfin · `storage`→minio console ·
 `search`→searxng · `jupyter`→jupyter-lab · `port`→portainer · `monitor`→netdata ·
-`www`→homepage · `claw`→openclaw-gateway
+`www`→homepage · `arijitroy.com` (apex)→homepage · `claw`→openclaw-gateway
 
 ### Caddy-only / not public
 `ollama` (Tailscale-only) · `pipes` (pipelines)
@@ -99,7 +99,7 @@ bridge. Driven by the root `Makefile` (`make up/down/update/ps`) with `.env` at 
 | `compute/` | jupyter-lab | `rocm/pytorch` | — | GPU notebooks |
 | `media/` | jellyfin | `linuxserver/jellyfin` | — | Media server (GPU transcode) |
 | `monitoring/` | netdata | `netdata/netdata` | 19999 (host net) | System + container metrics |
-| `homepage/` | homepage | `httpd:alpine` | — (internal) | Dashboard landing page |
+| `homepage/` | homepage | `httpd:alpine` | — (internal) | Personal website (arijitroy.com) + `/lab.html` dashboard |
 
 Only two services publish host ports, both for raw-IP LAN clients: **9000** (MinIO S3
 API — `auto_ingestor.py`) and **11434** (Ollama — VS Code Continue). Everything else

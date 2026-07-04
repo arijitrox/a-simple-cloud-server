@@ -56,7 +56,12 @@ monitor.arijitroy.com {
     reverse_proxy host.docker.internal:19999
 }
 
-# Homepage / Dashboard
+# Personal website (apex + www) — /lab.html is the old dashboard
+arijitroy.com {
+    tls internal
+    reverse_proxy homepage:80
+}
+
 www.arijitroy.com {
     tls internal
     reverse_proxy homepage:80

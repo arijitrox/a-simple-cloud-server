@@ -11,3 +11,7 @@ FAILURES.log
 
 # make update drops pre-update image manifests here (rollback reference)
 .image-manifests/
+
+# raw Flickr downloads (source material for the website gallery; processed
+# copies live in homepage/html/assets/photos/ and ARE committed)
+homepage/site-assets/

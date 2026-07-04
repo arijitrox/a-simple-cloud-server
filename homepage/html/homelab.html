@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Homelab — Arijit Roy</title>
+  <meta name="description" content="A 64-core EPYC server, three Radeon GPUs and a fully self-hosted AI stack — the homelab of Arijit Roy." />
+  <link rel="canonical" href="https://arijitroy.com/homelab.html" />
+  <meta property="og:title" content="Homelab — Arijit Roy" />
+  <meta property="og:description" content="A datacentre that lives at home: self-hosted AI on open-source software." />
+  <meta property="og:image" content="https://arijitroy.com/assets/photos/full/29611152045.jpg" />
+  <link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="/assets/css/site.css" />
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="/">Arijit Roy</a>
+    <nav class="site-nav">
+      <a href="/">Home</a>
+      <a href="/photography.html">Photography</a>
+      <a href="/homelab.html" aria-current="page">Homelab</a>
+      <a href="/blog/">Blog</a>
+    </nav>
+  </div>
+</header>
+
+<div class="page-head">
+  <div class="wrap">
+    <p class="kicker">Homelab</p>
+    <h1>A datacentre that lives at home</h1>
+    <p class="lede">One server, three GPUs, a dozen services — everything I use daily
+    for AI, storage, media and code runs on hardware I can reach out and touch.
+    No cloud subscriptions, no data leaving the house.</p>
+  </div>
+</div>
+
+<section style="padding-top:1rem">
+  <div class="wrap-text prose">
+    <h2>The hardware</h2>
+    <p>The whole estate runs on a single machine: an <strong>AMD EPYC 7742</strong> —
+    64 cores and 128 threads of Rome-era server silicon — with 94&nbsp;GB of RAM and
+    three <strong>Radeon RX 6700 XT</strong> cards providing roughly 30&nbsp;GB of pooled
+    VRAM. Consumer gaming GPUs doing datacentre work, coaxed along by ROCm. It is not
+    the setup a cloud architect would draw on a whiteboard, and that is rather the
+    point.</p>
+
+    <h2>The software</h2>
+    <p>Everything is a Docker Compose stack — one per concern, all joined by a shared
+    bridge network, fronted by <strong>Caddy</strong> for internal TLS and published
+    to the internet only through a <strong>Cloudflare Tunnel</strong>. No open ports
+    on the router. Remote access for me is over <strong>Tailscale</strong>.
+    Current project: production-grade vLLM serving with Prometheus/Grafana
+    observability.</p>
+  </div>
+</section>
+
+<section style="padding-top:0">
+  <div class="wrap">
+    <div class="card-grid">
+      <div class="card">
+        <span class="card-icon">🧠</span>
+        <h3>AI</h3>
+        <p>Open-weight LLMs served by Ollama across the three GPUs, with Open WebUI
+        for chat, agent pipelines, private metasearch, and speech in both directions —
+        local text-to-speech and Whisper transcription.</p>
+        <span class="card-meta">Ollama · Open WebUI · SearXNG · Kokoro · Whisper</span>
+      </div>
+      <div class="card">
+        <span class="card-icon">🗄️</span>
+        <h3>Storage &amp; backups</h3>
+        <p>S3-compatible object storage on MinIO for everything that matters, with
+        encrypted, versioned offsite backups so a house fire costs hardware, not
+        history.</p>
+        <span class="card-meta">MinIO · restic · offsite replication</span>
+      </div>
+      <div class="card">
+        <span class="card-icon">🛠️</span>
+        <h3>DevOps</h3>
+        <p>Self-hosted git with CI, container management, and a ROCm-enabled
+        JupyterLab for when an idea needs a notebook and a GPU in a hurry.</p>
+        <span class="card-meta">Gitea · Portainer · JupyterLab</span>
+      </div>
+      <div class="card">
+        <span class="card-icon">🎬</span>
+        <h3>Media &amp; monitoring</h3>
+        <p>Jellyfin streams the media library with GPU transcoding, while Netdata
+        watches every core, container and disk in real time.</p>
+        <span class="card-meta">Jellyfin · Netdata</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="padding-top:0">
+  <div class="wrap-text prose">
+    <h2>Why bother?</h2>
+    <p>Three reasons, in honest order. <strong>Privacy:</strong> my conversations with
+    AI models, my photos, my documents — none of it leaves the building.
+    <strong>Learning:</strong> operating real infrastructure teaches things no tutorial
+    can; every outage is a seminar. <strong>Joy:</strong> there is a particular
+    satisfaction in asking a question and hearing the GPU fans answer first.</p>
+    <p>I write about the lab occasionally on the <a href="/blog/">blog</a> — starting
+    with <a href="/blog/hello.html">why I self-host my own AI</a>.</p>
+  </div>
+</section>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <span>© 2026 Arijit Roy · All photographs are my own work.</span>
+    <ul class="foot-links">
+      <li><a href="https://www.linkedin.com/in/arijitroypro/">LinkedIn</a></li>
+      <li><a href="https://github.com/arijitrox">GitHub</a></li>
+      <li><a href="https://www.flickr.com/photos/arigraphy/">Flickr</a></li>
+      <li><a href="/blog/feed.xml">RSS</a></li>
+      <li><a href="/lab.html">Lab console</a></li>
+    </ul>
+  </div>
+</footer>
+
+</body>
+</html>

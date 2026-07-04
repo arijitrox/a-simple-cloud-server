@@ -20,7 +20,7 @@ Self-hosted homelab stack running on an AMD EPYC 7742 server with 3x RX 6700 XT 
 | `compute/` | Jupyter Lab (ROCm) |
 | `media/` | Jellyfin |
 | `monitoring/` | Netdata |
-| `homepage/` | Dashboard landing page |
+| `homepage/` | Personal website (arijitroy.com) + `/lab.html` dashboard |
 
 ## Setup
 

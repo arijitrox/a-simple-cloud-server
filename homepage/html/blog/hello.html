@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Why I self-host my own AI — Arijit Roy</title>
+  <meta name="description" content="What it takes — and what it gives back — to run your own models on your own silicon." />
+  <link rel="canonical" href="https://arijitroy.com/blog/hello.html" />
+  <link rel="alternate" type="application/rss+xml" title="Arijit Roy" href="/blog/feed.xml" />
+  <link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="/assets/css/site.css" />
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="/">Arijit Roy</a>
+    <nav class="site-nav">
+      <a href="/">Home</a>
+      <a href="/photography.html">Photography</a>
+      <a href="/homelab.html">Homelab</a>
+      <a href="/blog/" aria-current="page">Blog</a>
+    </nav>
+  </div>
+</header>
+
+<article class="prose" style="padding: 3.5rem 0">
+  <div class="wrap-text">
+    <p class="kicker">Homelab</p>
+    <h1>Why I self-host my own AI</h1>
+    <p class="post-meta">July 4, 2026 · Arijit Roy</p>
+
+    <p>There is a certain irony in my situation. By day I test GPUs for a living —
+    validating unreleased silicon at AMD and measuring exactly what it can do. By
+    night I am the one wrestling with that silicon in the corner of my house. The industry pushes the narrative that AI
+    is a utility you simply subscribe to, but I found myself increasingly uncomfortable
+    with my thoughts and data traversing public networks to reach a black box. So I
+    built my own.</p>
+
+    <p>The heart of the operation is a single AMD EPYC 7742 server — 64 cores and
+    94&nbsp;GB of RAM. It was never intended for a home environment, but it sits here
+    humming quietly, handling the heavy lifting. The real challenge lies in the
+    graphics cards: three Radeon RX 6700 XTs, roughly 30&nbsp;GB of VRAM between them.
+    These are consumer cards, not enterprise hardware, and getting them to serve
+    models together takes a bit of elbow grease with ROCm. There is a specific kind
+    of satisfaction in making gaming GPUs do datacentre work, even when it means
+    spending more time debugging drivers than writing prompts.</p>
+
+    <p>The software stack is built for stability and isolation. Open-weight LLMs are
+    served by Ollama, with Open WebUI as the chat front-end. Everything lives in
+    Docker Compose stacks, so when something breaks I can spin it back up without
+    losing state. To reach any of it from the internet without opening ports on my
+    router, everything sits behind Caddy and a Cloudflare Tunnel; when I need remote
+    access myself, Tailscale gives me a private mesh instead of an exposed service.</p>
+
+    <p>Storage and recovery are non-negotiable. MinIO keeps datasets and model
+    weights local as S3-compatible object storage, and restic pushes encrypted,
+    versioned backups offsite. If the house burns down, the data survives — and stays
+    encrypted until I choose to restore it.</p>
+
+    <p>The primary driver is privacy. When I chat with my local models, those
+    conversations never leave the building. No telemetry, no training on my data, no
+    third-party retention. That sovereignty is worth the electricity bill.</p>
+
+    <p>There are trade-offs, of course. The hardware and power costs are real compared
+    to a monthly API subscription, and the time investment is higher still — I am not
+    just the user, I am the sysadmin, the network engineer, and the support ticket.
+    But the learning curve is the point. Operating real infrastructure teaches you how
+    the pieces fit together in a way that clicking a button in someone else's
+    dashboard never will. It is messy, occasionally frustrating, and entirely mine.</p>
+
+    <p>In a world where AI is becoming increasingly centralized, there is a quiet
+    rebellion in keeping the compute local. I don't do it to be efficient. I do it to
+    understand the machine I am asking to think for me.</p>
+  </div>
+</article>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <span>© 2026 Arijit Roy · All photographs are my own work.</span>
+    <ul class="foot-links">
+      <li><a href="https://www.linkedin.com/in/arijitroypro/">LinkedIn</a></li>
+      <li><a href="https://github.com/arijitrox">GitHub</a></li>
+      <li><a href="https://www.flickr.com/photos/arigraphy/">Flickr</a></li>
+      <li><a href="/blog/feed.xml">RSS</a></li>
+      <li><a href="/lab.html">Lab console</a></li>
+    </ul>
+  </div>
+</footer>
+
+</body>
+</html>
