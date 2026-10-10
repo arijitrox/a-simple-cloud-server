@@ -1,0 +1,18 @@
+[Unit]
+Description=GPU fan floor (RX 6700 zero-RPM idle mitigation)
+Documentation=https://github.com/arijitrox/cloud-infra
+# Must be in place before any GPU workload starts, or the stack can begin a
+# heavy job from a fans-stopped soak — see the 2026-08-03 SW CTF poweroff.
+After=systemd-modules-load.service
+Before=cloud-stack.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/home/arijit/cloud-infra/minio/scripts/gpu-fan-floor.sh start
+ExecStop=/home/arijit/cloud-infra/minio/scripts/gpu-fan-floor.sh stop
+# Fan speed 0-255. 200 (~78%) measured to hold SDXL at a ~92-93 C plateau.
+Environment=GPU_FAN_PWM=200
+
+[Install]
+WantedBy=multi-user.target

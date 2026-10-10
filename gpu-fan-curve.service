@@ -1,0 +1,17 @@
+[Unit]
+Description=Aggressive fan curve for the RX 6700 stack (manual amdgpu PWM)
+Documentation=file:/home/arijit/cloud-infra/minio/scripts/gpu-fan-curve.sh
+After=multi-user.target
+
+[Service]
+Type=simple
+ExecStart=/home/arijit/cloud-infra/minio/scripts/gpu-fan-curve.sh
+ExecStopPost=/home/arijit/cloud-infra/minio/scripts/gpu-fan-curve.sh --restore
+User=root
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
