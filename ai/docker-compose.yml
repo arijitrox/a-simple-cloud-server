@@ -1,6 +1,11 @@
 services:
   ollama:
-    image: ollama/ollama:rocm
+    # Pinned (was the floating :rocm tag). A newer image sitting in the local
+    # cache silently moved this container 0.20.0 -> 0.32.6 on a routine
+    # `compose up -d`, mid-benchmark. Digest-verified identical to what :rocm
+    # resolved to on 2026-08-08. qwen3.6-fable:27b needs >=0.32.x, so do not
+    # roll back below that; bump forward deliberately, release notes first.
+    image: ollama/ollama:0.32.6-rocm
     container_name: ollama
     devices:
       - /dev/kfd:/dev/kfd
@@ -12,6 +17,29 @@ services:
       - seccomp:unconfined
     environment:
       - HSA_OVERRIDE_GFX_VERSION=10.3.0
+      # Long-context tuning. gemma4 declares a 262144 ctx and uses a 1024-token
+      # sliding window on most layers, so KV grows far slower than a dense model:
+      # 128k fits fully on the 3x RX 6700s (31/31 layers) — but NOT with room to
+      # spare: GPU0 carries 6.2 GiB weights + 1.2 GiB KV + 1.3 GiB compute of
+      # 9.5 GiB usable, before the vision projector. A ~54k-token prompt hit a
+      # runtime `ROCm error: out of memory` on 2026-10-10 (see openclaw.md).
+      # Deliberately NOT setting OLLAMA_KV_CACHE_TYPE: q8_0 halves KV memory but
+      # measured ~3x SLOWER on gfx1031 (240 vs 668 tok/s prefill) because RDNA2
+      # dequantizes the cache on every pass. f16 KV already fits, so it wins.
+      - OLLAMA_FLASH_ATTENTION=1
+      - OLLAMA_CONTEXT_LENGTH=131072
+      # Default is 5m; reloading a 24 GiB model costs ~15s and used to land
+      # inside OpenClaw's idle timeout. Keep the primary model resident.
+      - OLLAMA_KEEP_ALIVE=60m
+      # One model resident at a time. Default (0 = unlimited) let gemma4 (21 GB)
+      # and qwen3.6-fable (19 GB) both try to occupy 32.2 GB of VRAM: on
+      # 2026-08-08 that produced a hard `cudaMalloc failed: out of memory` +
+      # "llama-server terminated (core dumped)", recovered ~25s later by
+      # retrying with the projector on CPU. That stall reads to a chat client as
+      # a timeout. With 1, ollama evicts the resident model cleanly instead.
+      # NOTE: interacts with the 60m keep-alive above — switching models now
+      # always costs a reload, which is the intended trade.
+      - OLLAMA_MAX_LOADED_MODELS=1
     volumes:
       - /mnt/cloud_storage/ollama_models:/root/.ollama
     # Published for raw-IP LAN clients (VS Code Continue); Tailscale uses
@@ -24,6 +52,50 @@ services:
       timeout: 10s
       retries: 5
       start_period: 30s
+    networks:
+      - cloud-net
+    restart: unless-stopped
+
+  # Image + video generation. Same unofficial ROCm/gfx1031 path as ollama
+  # (HSA_OVERRIDE_GFX_VERSION=10.3.0) — verified: torch on ROCm 7.2 detects and
+  # runs kernels on all 3 RX 6700s. Reached via Caddy (comfy.arijitroy.com) and
+  # by open-webui over cloud-net; no published port (only 9000/11434 may publish).
+  comfyui:
+    image: yanwk/comfyui-boot:rocm
+    container_name: comfyui
+    # Opt-in while parked on thermals (see GPU thermal notes): `make up` and the
+    # boot-time cloud-stack.service skip it. Start explicitly with
+    # `docker compose ... --profile comfy up -d comfyui`.
+    profiles: ["comfy"]
+    devices:
+      - /dev/kfd:/dev/kfd
+      - /dev/dri:/dev/dri
+    group_add:
+      - video
+    ipc: host
+    cap_add:
+      - SYS_PTRACE
+    security_opt:
+      - seccomp:unconfined
+      - label:disable
+    environment:
+      - HSA_OVERRIDE_GFX_VERSION=10.3.0
+      # All 3 cards shared with ollama. --reserve-vram leaves headroom so an
+      # image gen landing on a card that holds an LLM is less likely to OOM;
+      # split cross-attention trims peak VRAM on the weak-FP16 RX 6700s.
+      - CLI_ARGS=--use-split-cross-attention --reserve-vram 1.0
+    volumes:
+      - /mnt/cloud_storage/comfyui:/root/ComfyUI/models
+      - /mnt/cloud_storage/comfyui_output:/root/ComfyUI/output
+      - /mnt/cloud_storage/comfyui_user:/root/ComfyUI/user
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8188/system_stats >/dev/null 2>&1 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 180s
+    # Generous: video model CPU-offload leans on the new 256 GB RAM
+    mem_limit: 32g
     networks:
       - cloud-net
     restart: unless-stopped
@@ -118,7 +190,7 @@ services:
   open-webui:
     # Pinned release (was :main): floating a dev branch on a public service meant
     # unreviewed updates; bump this tag deliberately after reading release notes
-    image: ghcr.io/open-webui/open-webui:v0.10.2
+    image: ghcr.io/open-webui/open-webui:v0.11.4
     container_name: open-webui
     environment:
       - OLLAMA_BASE_URL=http://ollama:11434
@@ -142,6 +214,13 @@ services:
       - AUDIO_STT_OPENAI_API_BASE_URL=http://speaches:8000/v1
       - AUDIO_STT_OPENAI_API_KEY=not-needed
       - AUDIO_STT_MODEL=deepdml/faster-whisper-large-v3-turbo-ct2
+      # --- Image generation via ComfyUI (SDXL) — surfaces in the chat UI ---
+      - ENABLE_IMAGE_GENERATION=True
+      - IMAGE_GENERATION_ENGINE=comfyui
+      - COMFYUI_BASE_URL=http://comfyui:8188
+      - IMAGE_GENERATION_MODEL=sd_xl_base_1.0.safetensors
+      - IMAGE_SIZE=1024x1024
+      - IMAGE_STEPS=25
     volumes:
       - /mnt/cloud_storage/webui_data:/app/backend/data
     mem_limit: 8g
@@ -159,14 +238,26 @@ services:
       - pipelines
       - kokoro
       - speaches
+      # comfyui is deliberately NOT listed: it is behind the opt-in "comfy"
+      # profile, and depending on it would make the project invalid when the
+      # profile is inactive. Open WebUI reaches it by name (COMFYUI_BASE_URL)
+      # whenever it happens to be running.
     networks:
       - cloud-net
     restart: unless-stopped
 
   openclaw-gateway:
-    image: ghcr.io/openclaw/openclaw:latest
+    # Pinned to the 2026.7.x beta line: the official SearXNG web_search plugin
+    # requires plugin API >=2026.7.1, which stable :latest (2026.6.34) predates.
+    image: ghcr.io/openclaw/openclaw:2026.7.1
     container_name: openclaw-gateway
     command: node dist/index.js gateway --allow-unconfigured
+    ports:
+      # Loopback-only, so the native root node host on this machine can reach the
+      # gateway without a LAN or public bind. A 127.0.0.1 publish does NOT bypass
+      # ufw the way a 0.0.0.0 publish does, so this stays within the intent of the
+      # CLAUDE.md "only 9000 and 11434" rule.
+      - "127.0.0.1:18789:18789"
     environment:
       - OPENCLAW_GATEWAY_TOKEN=${OPENCLAW_GATEWAY_TOKEN}
       - OPENCLAW_CONFIG_DIR=/home/node/.openclaw

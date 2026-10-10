@@ -1,11 +1,29 @@
 {
     email admin@arijitroy.com
+
+    # Internal CA intermediate must outlive the longest leaf lifetime below
+    # (claw.* uses 90d leaves so the phone's pinned TLS fingerprint survives).
+    pki {
+        ca local {
+            intermediate_lifetime 8760h
+        }
+    }
 }
 
 # AI / Open-WebUI
 chat.arijitroy.com {
     tls internal
     reverse_proxy open-webui:8080
+}
+
+# ComfyUI (image + video generation; image gen also surfaces inside Open-WebUI)
+# Caddy-only + IP-restricted to LAN/Tailscale — ComfyUI has no auth of its own
+# and can execute code, so it must never be reachable from the public tunnel.
+comfy.arijitroy.com {
+    tls internal
+    @blocked not remote_ip 100.0.0.0/8 192.168.0.0/16 10.0.0.0/8 172.16.0.0/12
+    abort @blocked
+    reverse_proxy comfyui:8188
 }
 
 # Gitea
@@ -69,7 +87,13 @@ www.arijitroy.com {
 
 # OpenClaw AI gateway
 claw.arijitroy.com {
-    tls internal
+    # 90d leaf: the OpenClaw phone app pins the cert's SHA-256 fingerprint
+    # (gatewayTlsSha256). Caddy's 12h default would break the pin twice a day.
+    tls {
+        issuer internal {
+            lifetime 2160h
+        }
+    }
     reverse_proxy openclaw-gateway:18789
 }
 
@@ -79,4 +103,14 @@ ollama.arijitroy.com {
     @blocked not remote_ip 100.0.0.0/8 192.168.0.0/16 10.0.0.0/8 172.16.0.0/12
     abort @blocked
     reverse_proxy ollama:11434
+}
+
+# vLLM OpenAI-compatible API (CPU backend; Tailscale/LAN-only via IP restriction)
+# Same IP gate as ollama — vLLM's OpenAI server has NO auth of its own, so the
+# only thing standing between it and the internet is this matcher.
+vllm.arijitroy.com {
+    tls internal
+    @blocked not remote_ip 100.0.0.0/8 192.168.0.0/16 10.0.0.0/8 172.16.0.0/12
+    abort @blocked
+    reverse_proxy vllm:8000
 }

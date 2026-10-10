@@ -5,8 +5,8 @@ Self-hosted homelab stack running on an AMD EPYC 7742 server with 3x RX 6700 XT 
 ## Hardware
 
 - CPU: AMD EPYC 7742 (64-core)
-- RAM: 94 GB
-- GPU: 3× AMD RX 6700 XT (ROCm)
+- RAM: 256 GB (8× 32 GB DDR4-3200 ECC)
+- GPU: 3× AMD RX 6700 (ROCm; ~10 GB VRAM each, gfx1031 → `HSA_OVERRIDE_GFX_VERSION=10.3.0`)
 - Storage: ZFS root (472 GB) + NVMe /mnt/cloud_storage (3.7 TB) + 5× HDD bays
 - OS: Ubuntu + Docker
 
@@ -15,7 +15,7 @@ Self-hosted homelab stack running on an AMD EPYC 7742 server with 3x RX 6700 XT 
 | Directory | Services |
 |-----------|----------|
 | `infra/` | Cloudflared tunnel, Caddy reverse proxy, MinIO, Portainer |
-| `ai/` | Ollama, Open-WebUI, Pipelines, SearXNG, Redis, OpenClaw |
+| `ai/` | Ollama, Open-WebUI, ComfyUI (image/video gen, opt-in `comfy` profile), Pipelines, SearXNG, Redis, OpenClaw |
 | `devops/` | Gitea, Postgres |
 | `compute/` | Jupyter Lab (ROCm) |
 | `media/` | Jellyfin |

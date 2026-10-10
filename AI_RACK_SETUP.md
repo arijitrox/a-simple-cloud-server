@@ -1,7 +1,7 @@
 # AI Rack — Replication Guide
 
 How to stand up a self-hosted AI server from a bare Ubuntu install.
-Derived from the God-Mode server: AMD EPYC 7742, 94GB RAM, 3× RX 6700 XT, NVMe + HDD array.
+Derived from the God-Mode server: AMD EPYC 7742, 256 GB DDR4-3200 ECC RAM, 3× RX 6700 XT, NVMe + HDD array.
 
 ---
 
@@ -10,6 +10,7 @@ Derived from the God-Mode server: AMD EPYC 7742, 94GB RAM, 3× RX 6700 XT, NVMe 
 | Service | Purpose | Host port |
 |---|---|---|
 | Ollama | Local LLM inference engine | 11434 |
+| ComfyUI | Image + video generation (GPU); image gen surfaces in Open-WebUI | — |
 | Open-WebUI | Chat UI (ChatGPT-like) | — |
 | OpenClaw | Self-hosted AI agent gateway (Ollama backend) | — |
 | Pipelines | Custom middleware / function calling | — |
@@ -472,7 +473,7 @@ docker exec ollama ollama pull qwen2.5:7b
 | `qwen2.5-coder:32b` | ~20GB | Code generation |
 | `llama3.3:70b` | ~40GB | Most capable open model |
 | `mistral:7b` | ~4GB | Fast, instruction-following |
-| `nomic-embed-text` | ~300MB | Embeddings for RAG |
+| `bge-m3` | ~1.2GB | Embeddings for RAG (1024-dim, strong multilingual) |
 
 Pull with: `docker exec ollama ollama pull <model>`
 
