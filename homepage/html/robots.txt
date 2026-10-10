@@ -1,5 +1,6 @@
 User-agent: *
 Allow: /
 Disallow: /lab.html
+Disallow: /tools.html
 
 Sitemap: https://arijitroy.com/sitemap.xml

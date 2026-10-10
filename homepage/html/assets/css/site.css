@@ -109,6 +109,102 @@ section { padding: 4.5rem 0; }
 .site-nav a:hover { color: var(--ink); background: var(--accent-soft); text-decoration: none; }
 .site-nav a[aria-current="page"] { color: var(--ink); font-weight: 600; }
 
+/* ── Tools dropdown (nav) ───────────────────────────────── */
+.nav-drop { position: relative; }
+
+.nav-drop-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.nav-drop-toggle svg { transition: transform 0.2s; }
+
+.nav-drop:hover .nav-drop-toggle,
+.nav-drop:focus-within .nav-drop-toggle {
+  color: var(--ink);
+  background: var(--accent-soft);
+}
+
+.nav-drop:hover .nav-drop-toggle svg,
+.nav-drop:focus-within .nav-drop-toggle svg { transform: rotate(180deg); }
+
+.nav-drop-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 60;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(9.5rem, 1fr));
+  gap: 0.25rem 0.75rem;
+  padding: 0.9rem 1rem;
+  background: var(--bg-raise);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  box-shadow: 0 14px 38px rgba(12, 10, 8, 0.18);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-4px);
+  transition: opacity 0.16s, transform 0.16s, visibility 0.16s;
+}
+
+/* Bridges the gap so the menu survives the trip from link to panel */
+.nav-drop-menu::before {
+  content: "";
+  position: absolute;
+  top: -8px;
+  left: 0;
+  right: 0;
+  height: 8px;
+}
+
+.nav-drop:hover .nav-drop-menu,
+.nav-drop:focus-within .nav-drop-menu {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.nav-drop-col,
+.nav-drop-group { display: flex; flex-direction: column; }
+
+.nav-drop-label {
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  padding: 0.5rem 0.5rem 0.25rem;
+}
+
+.site-nav .nav-drop-menu a {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.32rem 0.5rem;
+  font-size: 0.88rem;
+  color: var(--ink);
+  border-radius: 7px;
+  white-space: nowrap;
+}
+
+.nav-drop-menu .dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background: var(--accent);
+}
+
+.nav-drop-foot {
+  grid-column: 1 / -1;
+  margin-top: 0.4rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--line);
+}
+
+.site-nav .nav-drop-foot a { color: var(--accent); font-weight: 600; }
+
 /* ── Hero (home) ────────────────────────────────────────── */
 .hero {
   position: relative;
@@ -432,11 +528,64 @@ a.card:hover { border-color: var(--accent); transform: translateY(-3px); text-de
 .foot-links a { color: var(--ink-soft); }
 .foot-links a:hover { color: var(--accent); }
 
+/* ── Service cards (tools page) ─────────────────────────── */
+.legend {
+  font-size: 0.82rem;
+  color: var(--ink-faint);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  margin-top: 1.25rem;
+}
+
+.badge {
+  display: inline-block;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+
+.badge-public   { border-color: var(--accent); color: var(--accent); }
+.badge-lan      { border-color: var(--ink-faint); color: var(--ink-soft); }
+.badge-internal { border-style: dashed; }
+
+.svc .card-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.svc-host { font-family: var(--mono); font-size: 0.74rem; color: var(--ink-faint); }
+
+.svc-internal { border-style: dashed; background: transparent; }
+
+.tools-note {
+  margin-top: 3rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--line);
+  font-size: 0.92rem;
+  max-width: 42rem;
+}
+
 /* ── Small screens ──────────────────────────────────────── */
 @media (max-width: 640px) {
   section { padding: 3rem 0; }
   .site-head .wrap { gap: 0.75rem; }
   .site-nav a { padding: 0.4rem 0.5rem; font-size: 0.85rem; }
+  .nav-drop-menu {
+    grid-template-columns: 1fr;
+    max-height: 70vh;
+    overflow-y: auto;
+    max-width: calc(100vw - 2rem);
+  }
   .hero { min-height: 70vh; }
   .photo-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 0.5rem; }
 }

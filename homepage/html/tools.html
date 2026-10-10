@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex" />
+  <title>Tools — Services running on the rack</title>
+  <meta name="description" content="Every service running on Arijit Roy's self-hosted homelab, with direct links." />
+  <link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="/assets/css/site.css" />
+</head>
+<body>
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="/">Arijit Roy</a>
+    <nav class="site-nav">
+      <a href="/">Home</a>
+      <a href="/photography.html">Photography</a>
+      <a href="/homelab.html">Homelab</a>
+      <a href="/blog/">Blog</a>
+      <div class="nav-drop">
+        <a class="nav-drop-toggle" href="/tools.html" aria-current="page">Tools
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+        </a>
+        <div class="nav-drop-menu">
+          <div class="nav-drop-col">
+            <div class="nav-drop-group">
+              <span class="nav-drop-label">AI</span>
+              <a href="https://chat.arijitroy.com"><span class="dot"></span>Open WebUI</a>
+              <a href="https://claw.arijitroy.com"><span class="dot"></span>OpenClaw</a>
+              <a href="https://search.arijitroy.com"><span class="dot"></span>SearXNG</a>
+              <a href="https://pipes.arijitroy.com"><span class="dot"></span>Pipelines</a>
+              <a href="https://ollama.arijitroy.com"><span class="dot"></span>Ollama API</a>
+            </div>
+          </div>
+          <div class="nav-drop-col">
+            <div class="nav-drop-group">
+              <span class="nav-drop-label">DevOps</span>
+              <a href="https://git.arijitroy.com"><span class="dot"></span>Gitea</a>
+              <a href="https://port.arijitroy.com"><span class="dot"></span>Portainer</a>
+            </div>
+            <div class="nav-drop-group">
+              <span class="nav-drop-label">Storage</span>
+              <a href="https://storage.arijitroy.com"><span class="dot"></span>MinIO</a>
+            </div>
+            <div class="nav-drop-group">
+              <span class="nav-drop-label">Compute</span>
+              <a href="https://jupyter.arijitroy.com"><span class="dot"></span>JupyterLab</a>
+            </div>
+            <div class="nav-drop-group">
+              <span class="nav-drop-label">Media</span>
+              <a href="https://media.arijitroy.com"><span class="dot"></span>Jellyfin</a>
+            </div>
+            <div class="nav-drop-group">
+              <span class="nav-drop-label">Monitoring</span>
+              <a href="https://monitor.arijitroy.com"><span class="dot"></span>Netdata</a>
+              <a href="/lab.html"><span class="dot"></span>Lab console</a>
+            </div>
+          </div>
+          <div class="nav-drop-foot"><a href="/tools.html">All services &amp; details &rarr;</a></div>
+        </div>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<div class="page-head">
+  <div class="wrap">
+    <p class="kicker">Services</p>
+    <h1>Tools</h1>
+    <p class="lede">Everything running on the rack, grouped the way the stacks are.
+    Most of it sits behind Cloudflare Access or is only reachable from the LAN and
+    Tailscale — if a link asks you to sign in, that's working as intended.</p>
+    <p class="legend">
+      <span class="badge badge-public">Public</span> reachable through the tunnel ·
+      <span class="badge badge-lan">LAN / VPN</span> Caddy only, IP-restricted ·
+      <span class="badge badge-internal">Internal</span> container-to-container, no web route
+    </p>
+  </div>
+</div>
+
+<section style="padding-top:2rem">
+  <div class="wrap">
+
+    <!-- AI -->
+    <div class="sec-head">
+      <div>
+        <p class="kicker">ai/</p>
+        <h2>AI</h2>
+      </div>
+      <span class="more">3× RX 6700 · ROCm</span>
+    </div>
+    <div class="card-grid">
+      <a class="card svc" href="https://chat.arijitroy.com">
+        <span class="card-icon">🤖</span>
+        <h3>Open WebUI</h3>
+        <p>Chat front-end for the local models — RAG, private web search, voice in
+        and out, and SDXL image generation.</p>
+        <span class="card-meta"><code class="svc-host">chat.arijitroy.com</code><span class="badge badge-public">Public</span></span>
+      </a>
+      <a class="card svc" href="https://claw.arijitroy.com">
+        <span class="card-icon">🦾</span>
+        <h3>OpenClaw</h3>
+        <p>Self-hosted agent gateway wired to the local Ollama backend.</p>
+        <span class="card-meta"><code class="svc-host">claw.arijitroy.com</code><span class="badge badge-public">Public</span></span>
+      </a>
+      <a class="card svc" href="https://search.arijitroy.com">
+        <span class="card-icon">🔍</span>
+        <h3>SearXNG</h3>
+        <p>Privacy-respecting metasearch. Doubles as the retrieval source for
+        Open WebUI's web-search tool.</p>
+        <span class="card-meta"><code class="svc-host">search.arijitroy.com</code><span class="badge badge-public">Public</span></span>
+      </a>
+      <a class="card svc" href="https://pipes.arijitroy.com">
+        <span class="card-icon">🧩</span>
+        <h3>Pipelines</h3>
+        <p>OpenAI-compatible middleware — filters, routers and custom tools in front
+        of the models.</p>
+        <span class="card-meta"><code class="svc-host">pipes.arijitroy.com</code><span class="badge badge-lan">LAN / VPN</span></span>
+      </a>
+      <a class="card svc" href="https://ollama.arijitroy.com">
+        <span class="card-icon">🧠</span>
+        <h3>Ollama</h3>
+        <p>The inference engine itself. Serves open-weight models over the API that
+        editors and agents plug into.</p>
+        <span class="card-meta"><code class="svc-host">ollama.arijitroy.com</code><span class="badge badge-lan">LAN / VPN</span></span>
+      </a>
+      <div class="card svc svc-internal">
+        <span class="card-icon">🎨</span>
+        <h3>ComfyUI</h3>
+        <p>SDXL image pipeline on all three GPUs. Driven from inside Open WebUI
+        rather than its own front door.</p>
+        <span class="card-meta"><code class="svc-host">comfyui:8188</code><span class="badge badge-internal">Internal</span></span>
+      </div>
+      <div class="card svc svc-internal">
+        <span class="card-icon">🗣️</span>
+        <h3>Kokoro &amp; Speaches</h3>
+        <p>Text-to-speech and Whisper speech-to-text, both CPU-side, powering the
+        voice controls in the chat UI.</p>
+        <span class="card-meta"><code class="svc-host">kokoro:8880 · speaches:8000</code><span class="badge badge-internal">Internal</span></span>
+      </div>
+    </div>
+
+    <!-- Storage -->
+    <div class="sec-head" style="margin-top:3.5rem">
+      <div>
+        <p class="kicker">infra/</p>
+        <h2>Storage</h2>
+      </div>
+    </div>
+    <div class="card-grid">
+      <a class="card svc" href="https://storage.arijitroy.com">
+        <span class="card-icon">🗄️</span>
+        <h3>MinIO</h3>
+        <p>S3-compatible object storage — buckets, policies and the console for the
+        whole estate, with restic snapshots offsite.</p>
+        <span class="card-meta"><code class="svc-host">storage.arijitroy.com</code><span class="badge badge-public">Public</span></span>
+      </a>
+      <div class="card svc svc-internal">
+        <span class="card-icon">🔌</span>
+        <h3>MinIO S3 API</h3>
+        <p>The raw S3 endpoint on the LAN, for ingest scripts and clients that speak
+        the protocol directly.</p>
+        <span class="card-meta"><code class="svc-host">:9000</code><span class="badge badge-lan">LAN / VPN</span></span>
+      </div>
+    </div>
+
+    <!-- DevOps -->
+    <div class="sec-head" style="margin-top:3.5rem">
+      <div>
+        <p class="kicker">devops/ · infra/</p>
+        <h2>DevOps</h2>
+      </div>
+    </div>
+    <div class="card-grid">
+      <a class="card svc" href="https://git.arijitroy.com">
+        <span class="card-icon">🐙</span>
+        <h3>Gitea</h3>
+        <p>Repo hosting for everything that runs here, including the compose stacks
+        behind this site.</p>
+        <span class="card-meta"><code class="svc-host">git.arijitroy.com</code><span class="badge badge-public">Public</span></span>
+      </a>
+      <a class="card svc" href="https://port.arijitroy.com">
+        <span class="card-icon">🐳</span>
+        <h3>Portainer</h3>
+        <p>Container management UI — logs, shells and image pulls across every
+        stack on the box.</p>
+        <span class="card-meta"><code class="svc-host">port.arijitroy.com</code><span class="badge badge-public">Public</span></span>
+      </a>
+      <div class="card svc svc-internal">
+        <span class="card-icon">🐘</span>
+        <h3>PostgreSQL</h3>
+        <p>Application database behind Open WebUI. Never leaves the bridge network.</p>
+        <span class="card-meta"><code class="svc-host">postgres:5432</code><span class="badge badge-internal">Internal</span></span>
+      </div>
+    </div>
+
+    <!-- Compute -->
+    <div class="sec-head" style="margin-top:3.5rem">
+      <div>
+        <p class="kicker">compute/</p>
+        <h2>Compute</h2>
+      </div>
+    </div>
+    <div class="card-grid">
+      <a class="card svc" href="https://jupyter.arijitroy.com">
+        <span class="card-icon">📓</span>
+        <h3>JupyterLab</h3>
+        <p>ROCm PyTorch notebooks with the GPUs passed straight through — where the
+        MLOps experiments actually happen.</p>
+        <span class="card-meta"><code class="svc-host">jupyter.arijitroy.com</code><span class="badge badge-public">Public</span></span>
+      </a>
+    </div>
+
+    <!-- Media -->
+    <div class="sec-head" style="margin-top:3.5rem">
+      <div>
+        <p class="kicker">media/</p>
+        <h2>Media</h2>
+      </div>
+    </div>
+    <div class="card-grid">
+      <a class="card svc" href="https://media.arijitroy.com">
+        <span class="card-icon">🎬</span>
+        <h3>Jellyfin</h3>
+        <p>Media server with hardware transcoding on the same GPUs that run the
+        models.</p>
+        <span class="card-meta"><code class="svc-host">media.arijitroy.com</code><span class="badge badge-public">Public</span></span>
+      </a>
+    </div>
+
+    <!-- Monitoring & edge -->
+    <div class="sec-head" style="margin-top:3.5rem">
+      <div>
+        <p class="kicker">monitoring/ · infra/</p>
+        <h2>Monitoring &amp; edge</h2>
+      </div>
+    </div>
+    <div class="card-grid">
+      <a class="card svc" href="https://monitor.arijitroy.com">
+        <span class="card-icon">📊</span>
+        <h3>Netdata</h3>
+        <p>Per-second metrics for the host and every container — CPU, GPUs, disks,
+        network, the lot.</p>
+        <span class="card-meta"><code class="svc-host">monitor.arijitroy.com</code><span class="badge badge-public">Public</span></span>
+      </a>
+      <a class="card svc" href="/lab.html">
+        <span class="card-icon">🖥️</span>
+        <h3>Lab console</h3>
+        <p>The terminal-flavoured version of this page — the dashboard I actually
+        keep open on the second monitor.</p>
+        <span class="card-meta"><code class="svc-host">/lab.html</code></span>
+      </a>
+      <div class="card svc svc-internal">
+        <span class="card-icon">🛡️</span>
+        <h3>Caddy &amp; Cloudflare Tunnel</h3>
+        <p>The two front doors: Caddy terminates internal TLS for LAN and Tailscale,
+        the tunnel handles public traffic outbound-only — no inbound ports.</p>
+        <span class="card-meta"><code class="svc-host">caddy · cloudflared</code><span class="badge badge-internal">Internal</span></span>
+      </div>
+    </div>
+
+    <p class="tools-note">Nothing here is a hosted product — it's one EPYC box under
+    my own roof. Services move, get rebuilt, and occasionally go down while I'm
+    upgrading something. <a href="/homelab.html">The full tour explains how it fits
+    together.</a></p>
+
+  </div>
+</section>
+
+<footer class="site-foot">
+  <div class="wrap">
+    <span>© 2026 Arijit Roy · All photographs are my own work.</span>
+    <ul class="foot-links">
+      <li><a href="https://www.linkedin.com/in/arijitroypro/">LinkedIn</a></li>
+      <li><a href="https://github.com/arijitrox">GitHub</a></li>
+      <li><a href="https://www.flickr.com/photos/arigraphy/">Flickr</a></li>
+      <li><a href="/blog/feed.xml">RSS</a></li>
+      <li><a href="/lab.html">Lab console</a></li>
+    </ul>
+  </div>
+</footer>
+
+</body>
+</html>
