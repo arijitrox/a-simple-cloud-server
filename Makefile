@@ -5,7 +5,7 @@ define compose
 docker compose --project-name $(1) --env-file $(ENV_FILE) -f $(REPO_ROOT)$(1)/docker-compose.yml
 endef
 
-STACKS := infra homepage media devops ai compute monitoring
+STACKS := infra homepage media devops ai compute vllm monitoring
 
 .PHONY: up down restart update network ps logs check reload-caddy
 
@@ -20,10 +20,12 @@ up: network
 	$(call compose,devops)     up -d
 	$(call compose,ai)         up -d
 	$(call compose,compute)    up -d
+	$(call compose,vllm)       up -d
 	$(call compose,monitoring) up -d
 
 down:
 	$(call compose,monitoring) down
+	$(call compose,vllm)       down
 	$(call compose,compute)    down
 	$(call compose,ai)         down
 	$(call compose,devops)     down
@@ -43,6 +45,7 @@ update:
 	$(call compose,devops)     pull && $(call compose,devops)     up -d
 	$(call compose,ai)         pull && $(call compose,ai)         up -d
 	$(call compose,compute)    build --pull && $(call compose,compute) up -d
+	$(call compose,vllm)       pull && $(call compose,vllm)       up -d
 	$(call compose,monitoring) pull && $(call compose,monitoring) up -d
 	docker image prune -f
 

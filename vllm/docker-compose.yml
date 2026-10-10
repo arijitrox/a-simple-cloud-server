@@ -1,0 +1,66 @@
+# vLLM — OpenAI-compatible inference server, CPU backend.
+#
+# WHY CPU AND NOT THE GPUs: vLLM's ROCm support covers gfx90a/942/950 (CDNA),
+# gfx1100/1101 (RDNA3) and gfx1200/1201 (RDNA4). The three RX 6700s here are
+# Navi 22 = gfx1031 (RDNA2), which is on none of those lists. The
+# HSA_OVERRIDE_GFX_VERSION=10.3.0 trick that makes ollama work only fakes the
+# arch *string* — it does not give RDNA2 the MFMA matrix instructions vLLM's
+# attention kernels assume. So this stack is deliberately CPU-only. It exists to
+# learn/operate the vLLM surface (OpenAI server, engine args, continuous
+# batching, Prometheus metrics), not to beat ollama on tokens/sec.
+#
+# Deliberately binds NO /dev/kfd or /dev/dri: it must never contend with ollama
+# for VRAM, and it keeps this stack clear of the GPU thermal envelope.
+services:
+  vllm:
+    # Pinned. vLLM ships fast and breaks engine args between minors; bump
+    # deliberately, release notes first. CPU images are the `-x86_64` suffix —
+    # the unsuffixed `latest` tag is arm64 and will not run here.
+    image: vllm/vllm-openai-cpu:v0.27.1-x86_64
+    container_name: vllm
+    # EPYC 7742 is Zen 2: AVX2, NO AVX512. vLLM CPU runs in "limited features"
+    # mode there and float16 is unstable on torch CPU, so bfloat16 is required
+    # rather than merely preferred.
+    command: >
+      --model ${VLLM_MODEL:-Qwen/Qwen3-0.6B}
+      --dtype bfloat16
+      --host 0.0.0.0
+      --port 8000
+      --max-model-len ${VLLM_MAX_MODEL_LEN:-8192}
+      --served-model-name ${VLLM_SERVED_NAME:-vllm-local}
+    environment:
+      # KV cache pool in GiB, carved from system RAM (not VRAM on this backend).
+      - VLLM_CPU_KVCACHE_SPACE=${VLLM_CPU_KVCACHE_SPACE:-8}
+      # Pin OMP workers to physical cores 0-31. The box is 64c/128t single-NUMA;
+      # leaving headroom keeps ollama and the rest of the stack responsive.
+      - VLLM_CPU_OMP_THREADS_BIND=${VLLM_CPU_OMP_THREADS_BIND:-0-31}
+      - VLLM_LOGGING_LEVEL=INFO
+      - HF_HOME=/root/.cache/huggingface
+    volumes:
+      - /mnt/cloud_storage/vllm_models:/root/.cache/huggingface
+    # SYS_NICE lets vLLM set thread affinity/priority for the OMP pool.
+    cap_add:
+      - SYS_NICE
+    security_opt:
+      - seccomp:unconfined
+    shm_size: 4gb
+    mem_limit: 64g
+    # No published port. Repo rule: only 9000 (MinIO) and 11434 (Ollama) may
+    # bypass ufw via Docker. Reached as vllm:8000 on cloud-net, or through
+    # Caddy at vllm.arijitroy.com.
+    expose:
+      - "8000"
+    healthcheck:
+      test: ["CMD-SHELL", "python3 -c \"import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/health').status==200 else 1)\""]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      # Cold start downloads weights from HF then compiles; give it room.
+      start_period: 600s
+    networks:
+      - cloud-net
+    restart: unless-stopped
+
+networks:
+  cloud-net:
+    external: true
