@@ -15,3 +15,4 @@ FAILURES.log
 # raw Flickr downloads (source material for the website gallery; processed
 # copies live in homepage/html/assets/photos/ and ARE committed)
 homepage/site-assets/
+__pycache__/

@@ -38,6 +38,15 @@ media.arijitroy.com {
     reverse_proxy jellyfin:8096
 }
 
+# homelab MCP tools for claude.ai — Cloudflare Access at the edge, and the
+# service re-verifies the Access JWT itself (this vhost is also reachable on the LAN)
+mcp.arijitroy.com {
+    tls internal
+    reverse_proxy 172.18.0.1:8765 {
+        flush_interval -1
+    }
+}
+
 # MinIO console
 storage.arijitroy.com {
     tls internal
